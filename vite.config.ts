@@ -35,7 +35,6 @@ export default defineConfig(() => {
           'pwa-maskable-512x512.png',
           'apple-touch-icon.png',
           'logo.png',
-          'icon.svg',
           'og-card.png',
           'sw-notifications.js',
           '404.html',

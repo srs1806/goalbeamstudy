@@ -219,6 +219,32 @@ export function applyRouteSEOMetadata(screen: ActiveScreen): void {
     document.head.appendChild(canonicalLink);
   }
   canonicalLink.setAttribute('href', canonicalUrl);
+
+  const ensureLink = (selector: string, rel: string, href: string, extra?: Record<string, string>) => {
+    let el = document.querySelector(selector) as HTMLLinkElement | null;
+    if (!el) {
+      el = document.createElement('link');
+      el.setAttribute('rel', rel);
+      if (extra) {
+        Object.entries(extra).forEach(([k, v]) => el!.setAttribute(k, v));
+      }
+      document.head.appendChild(el);
+    }
+    el.setAttribute('href', href);
+  };
+
+  ensureLink('link[rel="icon"][sizes="48x48"]', 'icon', getAppAssetUrl('favicon.png'), {
+    type: 'image/png',
+    sizes: '48x48',
+  });
+  ensureLink('link[rel="icon"][sizes="192x192"]', 'icon', getAppAssetUrl('favicon-192x192.png'), {
+    type: 'image/png',
+    sizes: '192x192',
+  });
+  ensureLink('link[rel="shortcut icon"]', 'shortcut icon', getAppAssetUrl('favicon.ico'));
+  ensureLink('link[rel="apple-touch-icon"]', 'apple-touch-icon', getAppAssetUrl('apple-touch-icon.png'), {
+    sizes: '180x180',
+  });
 }
 
 export function buildCleanFilenameSlug(raw: string, fallback = 'study-resource', maxLen = 48): string {

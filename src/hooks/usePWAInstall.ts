@@ -27,7 +27,6 @@ function getOfflineCacheRoutes(): string[] {
     getScreenHref('leaderboard'),
     getScreenHref('settings'),
     getAppAssetUrl('site.webmanifest'),
-    getAppAssetUrl('icon.svg'),
     getAppAssetUrl('favicon.png'),
     getAppAssetUrl('favicon-192x192.png'),
     getAppAssetUrl('favicon-512x512.png'),

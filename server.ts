@@ -2261,8 +2261,14 @@ async function startServer() {
     const safeKeywords = escapeHtmlAttr(meta.keywords);
     const safeCanonical = escapeHtmlAttr(canonicalUrl);
     const safeImage = escapeHtmlAttr(`${origin}/og-card.png`);
+    const safeOrigin = origin.replace(/\/+$/, '');
 
     return html
+      .replace(
+        /https:\/\/ais-pre-6w7glvhulcqoh47lsmotwo-231466351973\.asia-east1\.run\.app/g,
+        safeOrigin
+      )
+      .replace(/href="\.\/(favicon[^"]*|apple-touch-icon\.png|site\.webmanifest|sitemap\.xml|opensearch\.xml)"/g, `href="${safeOrigin}/$1"`)
       .replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`)
       .replace(
         /<h1\s+data-seo-h1="true">[\s\S]*?<\/h1>/i,
