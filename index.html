@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Restore clean route after GitHub Pages 404.html redirect & suppress harmless dev WebSocket errors -->
+    <script>
+      (function() {
+        try {
+          var search = window.location.search;
+          if (search && search.indexOf('p=') !== -1) {
+            var params = new URLSearchParams(search);
+            var routePath = params.get('p');
+            if (routePath) {
+              var extraQ = params.get('q2');
+              var baseDir = window.location.pathname.replace(/index\.html$/, '').replace(/\/+$/, '');
+              var cleanSub = routePath.replace(/^\/+/, '');
+              var nextUrl = (baseDir ? baseDir + '/' : '/') + cleanSub + (extraQ ? '?' + extraQ : '') + window.location.hash;
+              window.history.replaceState(null, '', nextUrl);
+            }
+          }
+        } catch (_) {}
+
+        function isWsError(err) {
+          if (!err) return false;
+          var msg = typeof err === 'string' ? err : (err.message || (err.reason && err.reason.message) || err.toString() || '');
+          return msg.indexOf('WebSocket') !== -1 || msg.indexOf('websocket') !== -1 || msg.indexOf('closed without opened') !== -1;
+        }
+        window.addEventListener('unhandledrejection', function(e) {
+          if (isWsError(e.reason)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }, true);
+        window.addEventListener('error', function(e) {
+          if (isWsError(e.message) || isWsError(e.error)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+          }
+          // Self-heal if a cached index.html points to old hashed JS/CSS files after a publish
+          var target = e.target;
+          if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+            var src = target.src || target.href || '';
+            if (src.indexOf('/src/main.tsx') !== -1 && /\.github\.io$/i.test(window.location.hostname || '')) {
+              window.__goalbeamUnbuiltSource = true;
+              return;
+            }
+            if (src.indexOf('assets/') !== -1 || src.indexOf('/src/main.tsx') !== -1) {
+              try {
+                if (!sessionStorage.getItem('goalbeam_boot_retry')) {
+                  sessionStorage.setItem('goalbeam_boot_retry', '1');
+                  if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                    }).finally(function() {
+                      window.location.reload();
+                    });
+                  } else {
+                    window.location.reload();
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+        }, true);
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Primary Title & Search-Intent Optimization -->
+    <title>Goalbeam — CBSE Class 10 Course, Syllabus Tracker, Notes, PYQs &amp; MCQs</title>
+    <meta name="author" content="Shahid Shaikh" />
+    <meta
+      name="description"
+      content="Goalbeam: Free CBSE Class 10 course &amp; syllabus tracker, NCERT notes PDF, PYQs, sample papers, 10-MCQ quizzes &amp; live student leaderboard. Instant access — no signup wall."
+    />
+
+    <!-- Canonical, Sitemap & Chrome OpenSearch -->
+    <link rel="canonical" href="https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="./sitemap.xml" />
+    <link rel="search" type="application/opensearchdescription+xml" title="Goalbeam" href="./opensearch.xml" />
+
+    <!-- Deduplicated Concise Study Keywords -->
+    <meta
+      name="keywords"
+      content="goalbeam, cbse class 10 course, syllabus tracker, class 10 notes pdf, class 10 pyq, sample papers, ncert solutions, mcq quiz, board exam"
+    />
+
+    <!-- Robots & Crawler Directives -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
+    <meta name="language" content="en-IN, hi-IN" />
+    <meta name="rating" content="General" />
+    <meta name="classification" content="Education" />
+
+    <!-- OpenGraph Social Sharing Metadata -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="GOALBEAM — CBSE Class 10 Study Matrix" />
+    <meta property="og:title" content="Goalbeam — CBSE Class 10 Course, Syllabus Tracker, Notes, PYQs &amp; MCQs" />
+    <meta
+      property="og:description"
+      content="Goalbeam: Free CBSE Class 10 course &amp; syllabus tracker, NCERT notes PDF, PYQs, sample papers, 10-MCQ quizzes &amp; live student leaderboard. Instant access — no signup wall."
+    />
+    <meta property="og:url" content="https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/" />
+    <meta property="og:image" content="https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/og-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Goalbeam Free Class 10 CBSE Course Tracker, Notes PDF, PYQs, 10-MCQ Quizzes and Live Leaderboard" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter / X Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Goalbeam — CBSE Class 10 Course, Syllabus Tracker, Notes, PYQs &amp; MCQs" />
+    <meta
+      name="twitter:description"
+      content="Goalbeam: Free CBSE Class 10 course &amp; syllabus tracker, NCERT notes PDF, PYQs, sample papers, 10-MCQ quizzes &amp; live student leaderboard. Instant access — no signup wall."
+    />
+    <meta name="twitter:image" content="https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/og-card.png" />
+
+    <!-- PWA & Mobile Web App Capabilities -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Goalbeam" />
+    <meta name="application-name" content="GOALBEAM ⚡" />
+    <meta name="theme-color" content="#03050a" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Caveat:wght@600;700&family=Comfortaa:wght@600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&family=Lora:ital,wght@0,500;0,700;1,400;1,600&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Quicksand:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+
+    <!-- Favicons & Brand Icons -->
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="icon" href="./favicon.png" type="image/png" sizes="48x48" />
+    <link rel="icon" href="./favicon-192x192.png" type="image/png" sizes="192x192" />
+    <link rel="shortcut icon" href="./favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="./site.webmanifest" />
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/#website",
+          "name": "GOALBEAM — CBSE Class 10 Study Matrix",
+          "url": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/",
+          "inLanguage": "en-IN",
+          "keywords": "goalbeam, goal, beam, cbse, class 10 course, ncert, pyq, sqp, board, exam, tracker, planner, notes, revision, pomodoro, focus, quiz, ai, maths, science, sst, toppers, education",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          },
+          "publisher": {
+            "@id": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/#organization"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/#webapp",
+          "name": "GOALBEAM — CBSE Class 10 Study Matrix & AI Study Studio",
+          "alternateName": [
+            "Goalbeam",
+            "Goalbeam CBSE Class 10 Tracker",
+            "Goalbeam AI Study Studio"
+          ],
+          "url": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "All (Web, Android, iOS, Windows, macOS)",
+          "description": "Goalbeam is an offline-ready CBSE Class 10 Board Exam course & syllabus tracker supporting 54 CBSE subjects, 25 textbook languages, NCERT/PYQ/SQP resource vault, 3D Pomodoro Focus Garden, and Goalbeam AI Study Studio.",
+          "image": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/og-card.png",
+          "screenshot": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/og-card.png",
+          "author": {
+            "@type": "Person",
+            "name": "Shahid Shaikh"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "INR"
+          },
+          "featureList": [
+            "54 Class 10 CBSE Course Core, Language & Skill Subjects",
+            "Strictly CBSE Class 10 Course & Board Syllabus Alignment",
+            "25 Multilingual Interface & Textbook Medium Options",
+            "Customizable Chapter Mastery Stages with Compulsory NCERT Tracking",
+            "Goalbeam AI Study Studio (Doubt Solver, Visual Diagrams, Concept Motion, Focus Music, Live Voice Tutor)",
+            "Direct CBSE Sample Question Papers (SQP), Marking Schemes & NCERT Resource Vault",
+            "3D Pomodoro Focus Garden & Daily Streak Engine",
+            "Live 100% Real Website-Wide Syllabus Leaderboard",
+            "Offline-First Progressive Web App with JSON Backup & Restore"
+          ]
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/#organization",
+          "name": "GOALBEAM",
+          "url": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/",
+          "logo": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/favicon-192x192.png",
+          "image": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/og-card.png"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/#breadcrumbs",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home Dashboard",
+              "item": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Chapters & Syllabus",
+              "item": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/chapters"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "CBSE & NCERT Resources",
+              "item": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/resources"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Goalbeam AI Study Studio",
+              "item": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/aura-ai-studio"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "Study Insights",
+              "item": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/insights"
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "name": "Focus Garden",
+              "item": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/focus-garden"
+            }
+          ]
+        },
+        {
+          "@type": "HowTo",
+          "name": "How to Master Your CBSE Class 10 Course with Goalbeam",
+          "description": "Step-by-step workflow to organize your CBSE Class 10 course syllabus, complete NCERT & PYQ milestones, solve official SQPs, and build daily study streaks.",
+          "step": [
+            {
+              "@type": "HowToStep",
+              "position": 1,
+              "name": "Select Your CBSE Class 10 Course Subjects & Study Medium",
+              "text": "Pick your enrolled CBSE Class 10 course subjects from 54 official subjects, set your target board score, and choose your preferred language."
+            },
+            {
+              "@type": "HowToStep",
+              "position": 2,
+              "name": "Track Chapter-Wise Mastery Milestones",
+              "text": "Customize your study stages with compulsory NCERT completion alongside PYQs, Competency-Based Questions (CBQ), Reference Books, and Worksheets."
+            },
+            {
+              "@type": "HowToStep",
+              "position": 3,
+              "name": "Verify & Practice with Official CBSE Resources and Goalbeam AI Studio",
+              "text": "Download verified NCERT textbooks, CBSE Sample Question Papers, and Toppers Vault notes from Resources, or use Goalbeam AI Study Studio for instant doubt solving and visual diagrams."
+            },
+            {
+              "@type": "HowToStep",
+              "position": 4,
+              "name": "Build Daily Streaks in Focus Garden",
+              "text": "Run timed Pomodoro focus sprints in the 3D Focus Garden and stay consistent with daily study target reminders."
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Which Class 10 course subjects and board does Goalbeam support?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Goalbeam is built exclusively for CBSE Class 10 students, supporting 54 official CBSE core, language, and skill course subjects including Science (086), Mathematics Standard/Basic (041/241), Social Science (087), English, Hindi, IT (402), and AI (417)."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What study tools are inside Goalbeam AI Study Studio?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Goalbeam AI Study Studio offers dedicated workspaces for step-by-step academic chat, educational diagram generation, motion concept explainers, live voice tutoring, real-time CBSE resource discovery, voice-to-notes transcription, and focus soundscapes."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I access NCERT PDFs and CBSE Sample Question Papers in Goalbeam?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. The Resources Vault organizes verified official CBSE Sample Question Papers, Marking Schemes, NCERT chapter PDFs, and Toppers Vault notes for subjects where official resources are available."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does Goalbeam work offline without an account or subscription?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Goalbeam is an offline-first Progressive Web App that stores your course progress safely in local browser storage with one-click JSON backup and restore, at zero cost."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body style="margin:0;background:#03050a;color:#e2e8f0">
+    <div id="root">
+      <div id="goalbeam-boot-splash" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:Outfit,Inter,system-ui,sans-serif;background:#03050a;color:#e2e8f0">
+        <div style="font-size:20px;font-weight:800;letter-spacing:0.12em;color:#f8fafc">GOALBEAM <span style="color:#fbbf24">⚡</span></div>
+        <p id="goalbeam-boot-status" style="margin:10px 0 0;font-size:13px;color:#94a3b8">Loading your Class 10 study workspace…</p>
+        <button id="goalbeam-boot-retry-btn" type="button" onclick="window.__goalbeamHardRecover && window.__goalbeamHardRecover()" style="display:none;margin-top:16px;padding:10px 18px;border:0;border-radius:10px;background:#fbbf24;color:#03050a;font-weight:800;font-size:13px;cursor:pointer">Reload Website</button>
+      </div>
+    </div>
+    <noscript>
+      <main data-seo-shell="true" style="max-width:760px;margin:2rem auto;padding:1.5rem;font-family:Outfit,Inter,system-ui,sans-serif;color:#e2e8f0;background:#0e1015">
+        <h1 data-seo-h1="true">Goalbeam — CBSE Class 10 Course, Syllabus Tracker, Notes, PYQs &amp; MCQs</h1>
+        <p data-seo-desc="true">Goalbeam: Free CBSE Class 10 course &amp; syllabus tracker, NCERT notes PDF, PYQs, sample papers, 10-MCQ quizzes &amp; live student leaderboard. Instant access — no signup wall.</p>
+        <nav aria-label="Website Pages">
+          <a href="/">Home Dashboard</a> |
+          <a href="/chapters">Class 10 Chapters &amp; Syllabus</a> |
+          <a href="/practice">10-MCQ Quizzes &amp; Flashcards</a> |
+          <a href="/planner">Timetable &amp; Exam Date-Sheet</a> |
+          <a href="/resources">Notes, PYQs &amp; Sample Papers</a> |
+          <a href="/aura-ai-studio">Goalbeam AI Study Studio</a> |
+          <a href="/focus-garden">Pomodoro Focus Timer</a> |
+          <a href="/insights">Study Progress Analytics</a> |
+          <a href="/leaderboard">Scholars Streak Leaderboard</a> |
+          <a href="/settings">Settings &amp; Offline Backup</a> |
+          <a href="/setup">Student Board Setup</a>
+        </nav>
+      </main>
+    </noscript>
+    <script>
+      (function() {
+        window.__goalbeamHardRecover = function() {
+          var jobs = [];
+          if ('caches' in window) {
+            jobs.push(caches.keys().then(function(keys) {
+              return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+            }));
+          }
+          if ('serviceWorker' in navigator) {
+            jobs.push(navigator.serviceWorker.getRegistrations().then(function(regs) {
+              return Promise.all(regs.map(function(r) { return r.unregister(); }));
+            }));
+          }
+          Promise.all(jobs).catch(function(){}).finally(function() {
+            window.location.reload();
+          });
+        };
+        setTimeout(function() {
+          if (window.__goalbeamAppMounted) return;
+          if (window.__goalbeamUnbuiltSource) {
+            var ghStatus = document.getElementById('goalbeam-boot-status');
+            if (ghStatus) {
+              ghStatus.textContent = 'GitHub Pages is serving unbuilt source files. Enable Settings -> Pages -> Source: GitHub Actions to deploy the built app.';
+            }
+            return;
+          }
+          try {
+            if (!sessionStorage.getItem('goalbeam_boot_retry')) {
+              sessionStorage.setItem('goalbeam_boot_retry', '1');
+              window.__goalbeamHardRecover();
+              return;
+            }
+          } catch (_) {}
+          var status = document.getElementById('goalbeam-boot-status');
+          var btn = document.getElementById('goalbeam-boot-retry-btn');
+          if (status) status.textContent = 'Connection was interrupted while loading. Tap below to refresh.';
+          if (btn) btn.style.display = 'inline-block';
+        }, 7000);
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

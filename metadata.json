@@ -1,0 +1,8 @@
+{
+  "name": "AURA ⚡ — CBSE Class 10 Study Matrix",
+  "description": "Smart CBSE Class 10 Board Exam study tracker and vault for Hindi B, English, Marathi, Maths, Science, SST, and IT 402 with AI syllabus sync, 4-stage chapter mastery (NCERT, Ref Book, PYQ, Worksheet), PC Quick Notes, and multi-theme support. Made with ❤️ by Shahid Shaikh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

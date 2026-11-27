@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Goalbeam</ShortName>
+  <Description>Search Class 10 CBSE course syllabus chapters, NCERT solutions, sample papers, and study notes on Goalbeam.</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <OutputEncoding>UTF-8</OutputEncoding>
+  <Image height="48" width="48" type="image/png">/favicon.png</Image>
+  <Image height="192" width="192" type="image/png">/favicon-192x192.png</Image>
+  <Url type="text/html" method="get" template="https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/?q={searchTerms}" />
+</OpenSearchDescription>

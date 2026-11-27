@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="gb-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#03050a" />
+      <stop offset="100%" stop-color="#0b1220" />
+    </linearGradient>
+    <linearGradient id="gb-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+    <linearGradient id="gb-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#gb-bg)" />
+  <rect x="24" y="24" width="464" height="464" rx="96" fill="none" stroke="rgba(56,189,248,0.28)" stroke-width="6" />
+  <path d="M98 134 C156 134, 214 162, 256 206 C298 162, 356 134, 414 134 L414 352 C356 352, 298 374, 256 410 C214 374, 156 352, 98 352 Z" fill="rgba(15,23,42,0.75)" stroke="url(#gb-cyan)" stroke-width="14" stroke-linejoin="round" />
+  <path d="M256 206 L256 408" stroke="url(#gb-cyan)" stroke-width="10" stroke-linecap="round" />
+  <path d="M276 112 L214 234 L268 234 L236 334 L318 202 L262 202 Z" fill="url(#gb-gold)" />
+</svg>

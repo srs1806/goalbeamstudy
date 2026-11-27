@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+Sitemap: https://ais-pre-6w7glvhulcqoh47lsmotwo-231466351973.asia-east1.run.app/sitemap.xml

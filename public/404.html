@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Goalbeam — Redirecting…</title>
+    <script>
+      (function () {
+        var knownRoutes = {
+          dashboard: true,
+          chapters: true,
+          practice: true,
+          planner: true,
+          resources: true,
+          'aura-ai-studio': true,
+          'focus-garden': true,
+          insights: true,
+          leaderboard: true,
+          settings: true,
+          profile: true,
+          setup: true
+        };
+        var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+        var baseParts = parts;
+        var appRoute = '/';
+        if (parts.length > 0 && knownRoutes[parts[parts.length - 1]]) {
+          appRoute = '/' + parts[parts.length - 1];
+          baseParts = parts.slice(0, -1);
+        }
+        var basePath = baseParts.length > 0 ? '/' + baseParts.join('/') + '/' : '/';
+        var target = window.location.origin + basePath + '?p=' + encodeURIComponent(appRoute) + (window.location.search ? '&q2=' + encodeURIComponent(window.location.search.slice(1)) : '');
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body style="margin:0;background:#03050a;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
+    <p>Opening Goalbeam…</p>
+  </body>
+</html>
