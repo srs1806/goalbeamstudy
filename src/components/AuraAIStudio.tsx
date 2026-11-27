@@ -12,12 +12,15 @@ import {
   Radio,
   ArrowLeft,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
   X,
 } from 'lucide-react';
 import {
   AURA_WORKSPACES,
   AuraCategory,
   AuraWorkspaceId,
+  AuraWorkspaceMeta,
 } from './aura/auraCatalog';
 import { MindDeskChat } from './aura/MindDeskChat';
 import { CanvasCraftStudio } from './aura/CanvasCraftStudio';
@@ -26,6 +29,8 @@ import { SonicFlowStudio } from './aura/SonicFlowStudio';
 import { VoxPulseLive } from './aura/VoxPulseLive';
 import { PulseRadarSearch, EchoNoteScribe } from './aura/PulseRadarAndEchoNote';
 import { ScholarCastBriefing } from './aura/ScholarCastBriefing';
+
+const CREATIVE_STUDIO_STORAGE_KEY = 'goalbeam_studio_creative_open';
 
 const WORKSPACE_ICONS: Record<Exclude<AuraWorkspaceId, 'hub'>, React.FC<{ className?: string }>> = {
   minddesk: MessageSquare,
@@ -46,11 +51,31 @@ export const AuraAIStudio: React.FC<{ initialTopic?: string; onClose?: () => voi
   const [activeWorkspace, setActiveWorkspace] = useState<AuraWorkspaceId>('hub');
   const [categoryFilter, setCategoryFilter] = useState<AuraCategory>('all');
   const [mindDeskSeedPrompt, setMindDeskSeedPrompt] = useState<string>(initialTopic || '');
+  const [showCreativeStudios, setShowCreativeStudios] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(CREATIVE_STUDIO_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCreativeStudios = () => {
+    setShowCreativeStudios((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(CREATIVE_STUDIO_STORAGE_KEY, String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const activeMeta =
     activeWorkspace === 'hub'
       ? null
       : AURA_WORKSPACES.find((w) => w.id === activeWorkspace) || null;
+
+  const coreStudyWorkspaces = AURA_WORKSPACES.filter((w) => w.tier === 'core-study');
+  const creativeStudioWorkspaces = AURA_WORKSPACES.filter((w) => w.tier === 'creative-audio');
 
   const filteredWorkspaces =
     categoryFilter === 'all'
@@ -66,6 +91,41 @@ export const AuraAIStudio: React.FC<{ initialTopic?: string; onClose?: () => voi
   const openWorkspace = (id: Exclude<AuraWorkspaceId, 'hub'>) => {
     setActiveWorkspace(id);
     scrollContainerTop();
+  };
+
+  const renderWorkspaceCard = (ws: AuraWorkspaceMeta) => {
+    const IconComp = WORKSPACE_ICONS[ws.id];
+    return (
+      <button
+        key={ws.id}
+        type="button"
+        onClick={() => openWorkspace(ws.id)}
+        className={`group text-left p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-color)] ${ws.accentBorder} transition-colors cursor-pointer flex flex-col justify-between gap-4 hover:shadow-xl`}
+      >
+        <div className="space-y-3">
+          <div
+            className={`w-11 h-11 rounded-xl bg-gradient-to-br ${ws.accentGradient} text-white flex items-center justify-center shadow-md`}
+          >
+            <IconComp className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-[var(--text-primary)] tracking-tight">
+              {ws.name}
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1">
+              {ws.tagline}
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={`flex items-center gap-1.5 text-xs font-black ${ws.accentText} pt-2 border-t border-[var(--border-color)]/60`}
+        >
+          <span>Open Workspace</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+        </div>
+      </button>
+    );
   };
 
   return (
@@ -98,7 +158,7 @@ export const AuraAIStudio: React.FC<{ initialTopic?: string; onClose?: () => voi
             <p className="text-xs text-[var(--text-secondary)] break-words leading-relaxed mt-0.5">
               {activeMeta
                 ? activeMeta.tagline
-                : <>Select a specialized <span className="brand-wordmark">Goalbeam</span> Class 10 course workspace to begin</>}
+                : <>Core study tools upfront, with creative studios tucked cleanly below</>}
             </p>
           </div>
         </div>
@@ -148,7 +208,7 @@ export const AuraAIStudio: React.FC<{ initialTopic?: string; onClose?: () => voi
                 key={cat.id}
                 type="button"
                 onClick={() => setCategoryFilter(cat.id)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer whitespace-nowrap ${
                   categoryFilter === cat.id
                     ? 'bg-cyan-500 text-slate-950 border-cyan-400'
                     : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)]'
@@ -159,42 +219,59 @@ export const AuraAIStudio: React.FC<{ initialTopic?: string; onClose?: () => voi
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredWorkspaces.map((ws) => {
-              const IconComp = WORKSPACE_ICONS[ws.id];
-              return (
-                <button
-                  key={ws.id}
-                  type="button"
-                  onClick={() => openWorkspace(ws.id)}
-                  className={`group text-left p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-color)] ${ws.accentBorder} transition-colors cursor-pointer flex flex-col justify-between gap-4 hover:shadow-xl`}
-                >
-                  <div className="space-y-3">
-                    <div
-                      className={`w-11 h-11 rounded-xl bg-gradient-to-br ${ws.accentGradient} text-white flex items-center justify-center shadow-md`}
-                    >
-                      <IconComp className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black text-[var(--text-primary)] tracking-tight">
-                        {ws.name}
-                      </h3>
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1">
-                        {ws.tagline}
-                      </p>
-                    </div>
-                  </div>
+          {categoryFilter === 'all' ? (
+            <div className="space-y-6">
+              {/* Tier A: Core Study Tools shown upfront */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2 text-xs text-[var(--text-secondary)]">
+                  <span className="font-black uppercase tracking-wider text-[var(--text-primary)]">
+                    Core Study Tools
+                  </span>
+                  <span className="tabular-nums">5 focused workspaces</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {coreStudyWorkspaces.map(renderWorkspaceCard)}
+                </div>
+              </div>
 
-                  <div
-                    className={`flex items-center gap-1.5 text-xs font-black ${ws.accentText} pt-2 border-t border-[var(--border-color)]/60`}
-                  >
-                    <span>Open Workspace</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              {/* Tier B: Collapsible Creative & Audio Studios */}
+              <div className="rounded-2xl bg-[var(--bg-elevated)]/60 border border-[var(--border-color)] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={toggleCreativeStudios}
+                  className="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer"
+                  aria-expanded={showCreativeStudios}
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                      More Creative &amp; Audio Studios (4)
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] mt-0.5 truncate">
+                      ScholarCast Briefing · SceneReel Director · KinetiPic Animator · SonicFlow Composer
+                    </p>
                   </div>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-primary)] shrink-0 whitespace-nowrap">
+                    <span>{showCreativeStudios ? 'Hide' : 'Show'}</span>
+                    {showCreativeStudios ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+                    )}
+                  </span>
                 </button>
-              );
-            })}
-          </div>
+
+                {showCreativeStudios && (
+                  <div className="p-4 pt-2 border-t border-[var(--border-color)]/70 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in">
+                    {creativeStudioWorkspaces.map(renderWorkspaceCard)}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredWorkspaces.map(renderWorkspaceCard)}
+            </div>
+          )}
         </div>
       )}
 

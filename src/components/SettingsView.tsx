@@ -40,6 +40,7 @@ import {
   RotateCcw,
   Users,
   Calendar,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { SUPPORTED_LANGUAGES } from '../utils/translations';
 import {
@@ -126,12 +127,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     };
   }, []);
 
-  // Compact dropdown panel states (all collapsed cleanly by default to save space)
+  // Compact Profile Row / Drawer states (1 row desktop, 2 rows mobile + More dropdown)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [isGoalsMenuOpen, setIsGoalsMenuOpen] = useState(false);
-  const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false);
-  const [isSubjectDropdownOpen, setIsSubjectDropdownOpen] = useState(false);
-  const [isStagesDropdownOpen, setIsStagesDropdownOpen] = useState(false);
+  const [activeFeatureDrawer, setActiveFeatureDrawer] = useState<'goals' | 'alerts' | 'subjects' | 'more' | null>(null);
+  const [subjectsSubTab, setSubjectsSubTab] = useState<'subjects' | 'stages'>('subjects');
   const [isMediumMenuOpen, setIsMediumMenuOpen] = useState(false);
   const [isFontMenuOpen, setIsFontMenuOpen] = useState(false);
 
@@ -181,7 +180,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     };
 
     onUpdateProfile(updated);
-    setIsGoalsMenuOpen(false);
+    setActiveFeatureDrawer(null);
     showToast('Scholar profile saved ✓');
   };
 
@@ -711,110 +710,246 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       )}
 
       {/* ========================================================
-          2. BILATERAL 2-COLUMN COMPACT DROPDOWN SETTINGS MATRIX
+          2. 1-ROW (DESKTOP) / 2-ROW (MOBILE) FEATURE BAR + DROPDOWN
          ======================================================== */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 items-start">
-        {/* DROPDOWN 1: Scholar Profile & Board Goals */}
-        {(() => {
-          const goalsDropdown = (
-            <div
-              className={`rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm ${
-                isGoalsMenuOpen ? 'border-cyan-400/70' : 'border-[var(--border-color)] hover:border-cyan-400/50'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setIsGoalsMenuOpen((v) => !v)}
-                aria-expanded={isGoalsMenuOpen}
-                className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
-                      Scholar Profile &amp; Goals
-                    </span>
-                    <span className="text-[11px] text-[var(--text-secondary)] block truncate tabular-nums">
-                      {name || 'Scholar'} · {targetPercentage}% · {dailyHourGoal}h/day · {firstPaperDate}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-cyan-400 shrink-0">
-                  {isGoalsMenuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      <div className="space-y-2.5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          {/* Slot 1: Profile & Goals */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isGuestLocked) {
+                triggerCompleteProfile();
+                return;
+              }
+              setActiveFeatureDrawer((prev) => (prev === 'goals' ? null : 'goals'));
+            }}
+            aria-expanded={activeFeatureDrawer === 'goals'}
+            className={`px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border text-left transition-colors shadow-sm flex items-center justify-between gap-2 cursor-pointer min-w-0 ${
+              activeFeatureDrawer === 'goals'
+                ? 'border-cyan-400/80 ring-1 ring-cyan-400/30'
+                : 'border-[var(--border-color)] hover:border-cyan-400/50'
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                <User className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-[var(--text-primary)] block truncate">
+                  Profile &amp; Goals
                 </span>
-              </button>
-
-              {isGoalsMenuOpen && (
-                <form
-                  onSubmit={handleSaveProfile}
-                  className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-2.5 animate-in fade-in"
-                >
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
-                        Scholar Name
-                      </label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter name..."
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-semibold text-[var(--text-primary)] focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
-                        Target Score (%)
-                      </label>
-                      <input
-                        type="number"
-                        min="50"
-                        max="100"
-                        value={targetPercentage}
-                        onChange={(e) => setTargetPercentage(Number(e.target.value))}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-semibold text-[var(--text-primary)] tabular-nums focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
-                        1st Paper (DD/MM/YYYY)
-                      </label>
-                      <input
-                        type="text"
-                        value={firstPaperDate}
-                        onChange={(e) => setFirstPaperDate(e.target.value)}
-                        placeholder="15/02/2027"
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-mono font-semibold text-[var(--text-primary)] focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
-                        Daily Goal (Hours)
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="16"
-                        value={dailyHourGoal}
-                        onChange={(e) => setDailyHourGoal(Number(e.target.value))}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-semibold text-[var(--text-primary)] tabular-nums focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      className="py-1.5 px-3.5 rounded-lg bg-[var(--accent-primary)] hover:opacity-90 text-[var(--text-inverse)] font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm whitespace-nowrap shrink-0"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>Save Changes</span>
-                    </button>
-                  </div>
-                </form>
-              )}
+                <span className="text-[10px] text-[var(--text-secondary)] block truncate tabular-nums">
+                  {targetPercentage}% · {dailyHourGoal}h/day
+                </span>
+              </div>
             </div>
+            <span className="text-cyan-400 shrink-0">
+              {activeFeatureDrawer === 'goals' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </span>
+          </button>
+
+          {/* Slot 2: Study Notifications & Sound */}
+          <div
+            className={`px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm flex items-center justify-between gap-1.5 min-w-0 ${
+              activeFeatureDrawer === 'alerts'
+                ? 'border-amber-400/80 ring-1 ring-amber-400/30'
+                : 'border-[var(--border-color)] hover:border-amber-400/50'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                if (isGuestLocked) {
+                  triggerCompleteProfile();
+                  return;
+                }
+                setActiveFeatureDrawer((prev) => (prev === 'alerts' ? null : 'alerts'));
+              }}
+              aria-expanded={activeFeatureDrawer === 'alerts'}
+              className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                {reminderEnabled ? <BellRing className="w-4 h-4 text-emerald-400" /> : <Bell className="w-4 h-4" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-[var(--text-primary)] block truncate">
+                  Alerts &amp; Chime
+                </span>
+                <span className="text-[10px] text-[var(--text-secondary)] block truncate">
+                  {reminderEnabled ? 'Active' : 'Paused'} · {activeSoundName}
+                </span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isGuestLocked) {
+                  triggerCompleteProfile();
+                  return;
+                }
+                void handleToggleReminder(!reminderEnabled);
+              }}
+              className={`w-8 h-4.5 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-200 shrink-0 ${
+                reminderEnabled ? 'bg-emerald-500 justify-end' : 'bg-slate-700 justify-start'
+              }`}
+              title={reminderEnabled ? 'Turn notifications off' : 'Turn notifications on'}
+              aria-label="Toggle study notifications"
+            >
+              <div className="bg-white w-3.5 h-3.5 rounded-full shadow-sm" />
+            </button>
+          </div>
+
+          {/* Slot 3: CBSE Subjects & Study Stages */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isGuestLocked) {
+                triggerCompleteProfile();
+                return;
+              }
+              setActiveFeatureDrawer((prev) => (prev === 'subjects' ? null : 'subjects'));
+            }}
+            aria-expanded={activeFeatureDrawer === 'subjects'}
+            className={`px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border text-left transition-colors shadow-sm flex items-center justify-between gap-2 cursor-pointer min-w-0 ${
+              activeFeatureDrawer === 'subjects'
+                ? 'border-indigo-400/80 ring-1 ring-indigo-400/30'
+                : 'border-[var(--border-color)] hover:border-indigo-400/50'
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-[var(--text-primary)] block truncate">
+                  Subjects &amp; Stages
+                </span>
+                <span className="text-[10px] text-[var(--text-secondary)] block truncate tabular-nums">
+                  {enrolledSubjectIds.length} Subj · {selectedStages.length} Stages
+                </span>
+              </div>
+            </div>
+            <span className="text-indigo-400 shrink-0">
+              {activeFeatureDrawer === 'subjects' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </span>
+          </button>
+
+          {/* Slot 4: Dropdown Option for All Exceeding Features */}
+          <button
+            type="button"
+            onClick={() => setActiveFeatureDrawer((prev) => (prev === 'more' ? null : 'more'))}
+            aria-expanded={activeFeatureDrawer === 'more'}
+            className={`px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border text-left transition-colors shadow-sm flex items-center justify-between gap-2 cursor-pointer min-w-0 ${
+              activeFeatureDrawer === 'more'
+                ? 'border-emerald-400/80 ring-1 ring-emerald-400/30'
+                : 'border-[var(--border-color)] hover:border-emerald-400/50'
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                <SlidersHorizontal className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-[var(--text-primary)] block truncate">
+                  More Options
+                </span>
+                <span className="text-[10px] text-[var(--text-secondary)] block truncate">
+                  Language · Fonts · Guide · App
+                </span>
+              </div>
+            </div>
+            <span className="text-emerald-400 shrink-0">
+              {activeFeatureDrawer === 'more' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </span>
+          </button>
+        </div>
+
+        {/* ========================================================
+            EXPANDED DRAWER AREA FOR SELECTED SLOT
+           ======================================================== */}
+        {activeFeatureDrawer === 'goals' && (() => {
+          const goalsPanel = (
+            <form
+              onSubmit={handleSaveProfile}
+              className="rounded-xl bg-[var(--bg-card)] border border-cyan-400/60 p-4 space-y-3 shadow-md animate-in fade-in"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                  Scholar Profile &amp; Board Goals
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveFeatureDrawer(null)}
+                  className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                  aria-label="Close Profile & Goals"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div>
+                  <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
+                    Scholar Name
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter name..."
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-semibold text-[var(--text-primary)] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
+                    Target Score (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="50"
+                    max="100"
+                    value={targetPercentage}
+                    onChange={(e) => setTargetPercentage(Number(e.target.value))}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-semibold text-[var(--text-primary)] tabular-nums focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
+                    1st Paper (DD/MM/YYYY)
+                  </label>
+                  <input
+                    type="text"
+                    value={firstPaperDate}
+                    onChange={(e) => setFirstPaperDate(e.target.value)}
+                    placeholder="15/02/2027"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-mono font-semibold text-[var(--text-primary)] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
+                    Daily Goal (Hours)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="16"
+                    value={dailyHourGoal}
+                    onChange={(e) => setDailyHourGoal(Number(e.target.value))}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs font-semibold text-[var(--text-primary)] tabular-nums focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="py-1.5 px-4 rounded-lg bg-[var(--accent-primary)] hover:opacity-90 text-[var(--text-inverse)] font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm whitespace-nowrap shrink-0"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
           );
 
           return isGuestLocked ? (
@@ -823,105 +958,69 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               featureLabel="Scholar Profile"
               onCompleteProfile={triggerCompleteProfile}
             >
-              {goalsDropdown}
+              {goalsPanel}
             </LockedFeatureOverlay>
           ) : (
-            goalsDropdown
+            goalsPanel
           );
         })()}
 
-        {/* DROPDOWN 2: Study Notifications & Sound Chime */}
-        {(() => {
-          const notificationsDropdown = (
-            <div
-              className={`rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm ${
-                isNotificationsMenuOpen ? 'border-amber-400/70' : 'border-[var(--border-color)] hover:border-amber-400/50'
-              }`}
-            >
-              <div className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2">
+        {activeFeatureDrawer === 'alerts' && (() => {
+          const alertsPanel = (
+            <div className="rounded-xl bg-[var(--bg-card)] border border-amber-400/60 p-4 space-y-3 shadow-md animate-in fade-in">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                  Study Notifications &amp; Sound Chime
+                </span>
                 <button
                   type="button"
-                  onClick={() => setIsNotificationsMenuOpen((v) => !v)}
-                  aria-expanded={isNotificationsMenuOpen}
-                  className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer"
+                  onClick={() => setActiveFeatureDrawer(null)}
+                  className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                  aria-label="Close Notifications"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
-                    {reminderEnabled ? <BellRing className="w-4 h-4 text-emerald-400" /> : <Bell className="w-4 h-4" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
-                      Study Notifications &amp; Sound
-                    </span>
-                    <span className="text-[11px] text-[var(--text-secondary)] block truncate">
-                      {reminderEnabled ? 'Active' : 'Paused'} · {activeSoundName}
-                    </span>
-                  </div>
+                  <X className="w-4 h-4" />
                 </button>
+              </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-center">
+                <div className="flex items-center gap-2 bg-[var(--bg-elevated)] px-3 py-2 rounded-lg border border-[var(--border-color)]">
+                  <label className="text-[11px] font-bold text-[var(--text-secondary)] whitespace-nowrap shrink-0">
+                    Sound Chime
+                  </label>
+                  <select
+                    value={reminderSound}
+                    onChange={(e) => handleReminderSoundChange(e.target.value as MorningSoundType)}
+                    className="flex-1 min-w-0 bg-transparent text-xs font-bold text-cyan-300 cursor-pointer focus:outline-none"
+                  >
+                    {MORNING_SOUND_OPTIONS.map((opt) => (
+                      <option key={opt.id} value={opt.id} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        {opt.name}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
-                    onClick={() => handleToggleReminder(!reminderEnabled)}
-                    className={`w-10 h-5 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-200 ${
-                      reminderEnabled ? 'bg-emerald-500 justify-end' : 'bg-slate-700 justify-start'
-                    }`}
-                    title={reminderEnabled ? 'Turn notifications off' : 'Turn notifications on'}
-                    aria-label="Toggle study notifications"
+                    onClick={() => playCustomMorningNotificationSound(reminderSound)}
+                    className="p-1.5 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 cursor-pointer shrink-0"
+                    title="Test notification sound"
                   >
-                    <div className="bg-white w-4 h-4 rounded-full shadow-sm" />
+                    <Volume2 className="w-3.5 h-3.5" />
                   </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 bg-[var(--bg-elevated)] px-3 py-2 rounded-lg border border-[var(--border-color)]">
+                  <span className="text-[11px] text-[var(--text-secondary)]">
+                    Daily targets at 5:00 AM
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setIsNotificationsMenuOpen((v) => !v)}
-                    className="p-1 text-amber-400 cursor-pointer"
-                    aria-label="Toggle notification options"
+                    onClick={handleTestMorningReminder}
+                    className="px-3 py-1 rounded-lg bg-gradient-to-r from-amber-400 via-emerald-400 to-cyan-400 hover:opacity-95 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors whitespace-nowrap shrink-0"
                   >
-                    {isNotificationsMenuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    <span>Preview Alert</span>
                   </button>
                 </div>
               </div>
-
-              {isNotificationsMenuOpen && (
-                <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-2.5 animate-in fade-in">
-                  <div className="flex items-center gap-2 bg-[var(--bg-elevated)] px-2.5 py-1.5 rounded-lg border border-[var(--border-color)]">
-                    <label className="text-[11px] font-bold text-[var(--text-secondary)] whitespace-nowrap shrink-0">
-                      Sound Chime
-                    </label>
-                    <select
-                      value={reminderSound}
-                      onChange={(e) => handleReminderSoundChange(e.target.value as MorningSoundType)}
-                      className="flex-1 min-w-0 bg-transparent text-xs font-bold text-cyan-300 cursor-pointer focus:outline-none"
-                    >
-                      {MORNING_SOUND_OPTIONS.map((opt) => (
-                        <option key={opt.id} value={opt.id} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
-                          {opt.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => playCustomMorningNotificationSound(reminderSound)}
-                      className="p-1 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 cursor-pointer shrink-0"
-                      title="Test notification sound"
-                    >
-                      <Volume2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-[var(--text-muted)]">
-                      Daily section targets at 5:00 AM
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleTestMorningReminder}
-                      className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 via-emerald-400 to-cyan-400 hover:opacity-95 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors whitespace-nowrap shrink-0"
-                    >
-                      <span>Preview Alert</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           );
 
@@ -931,48 +1030,54 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               featureLabel="Notifications"
               onCompleteProfile={triggerCompleteProfile}
             >
-              {notificationsDropdown}
+              {alertsPanel}
             </LockedFeatureOverlay>
           ) : (
-            notificationsDropdown
+            alertsPanel
           );
         })()}
 
-        {/* DROPDOWN 3: CBSE Subjects & Exam Chapters */}
-        {(() => {
-          const subjectsDropdown = (
-            <div
-              className={`rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm ${
-                isSubjectDropdownOpen ? 'border-indigo-400/70' : 'border-[var(--border-color)] hover:border-indigo-400/50'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setIsSubjectDropdownOpen((v) => !v)}
-                aria-expanded={isSubjectDropdownOpen}
-                className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
-                    <BookOpen className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
-                      CBSE Subjects &amp; Chapters
-                    </span>
-                    <span className="text-[11px] text-[var(--text-secondary)] block truncate tabular-nums">
-                      {enrolledSubjectIds.length} of {CLASS_10_SUBJECTS.length} Active · {totalActiveChapters} Exam Ch
-                    </span>
-                  </div>
+        {activeFeatureDrawer === 'subjects' && (() => {
+          const subjectsPanel = (
+            <div className="rounded-xl bg-[var(--bg-card)] border border-indigo-400/60 p-4 space-y-3 shadow-md animate-in fade-in">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1 p-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)]">
+                  <button
+                    type="button"
+                    onClick={() => setSubjectsSubTab('subjects')}
+                    className={`px-3 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                      subjectsSubTab === 'subjects'
+                        ? 'bg-indigo-500 text-white shadow-sm'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    CBSE Subjects ({enrolledSubjectIds.length}/{CLASS_10_SUBJECTS.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSubjectsSubTab('stages')}
+                    className={`px-3 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                      subjectsSubTab === 'stages'
+                        ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    Study References ({selectedStages.length})
+                  </button>
                 </div>
-                <span className="text-indigo-400 shrink-0">
-                  {isSubjectDropdownOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </span>
-              </button>
 
-              {isSubjectDropdownOpen && (
-                <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-2.5 animate-in fade-in">
-                  {/* Quick Presets + Active Subject Quick-Edit Strip */}
+                <button
+                  type="button"
+                  onClick={() => setActiveFeatureDrawer(null)}
+                  className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                  aria-label="Close Subjects & Stages"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {subjectsSubTab === 'subjects' ? (
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <div className="flex items-center gap-1.5">
                       <button
@@ -990,15 +1095,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         All {CLASS_10_SUBJECTS.length}
                       </button>
                     </div>
-                    <a
-                      href={getWebSyllabusSearchUrl(settingsSubjectSearch)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] font-bold text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 px-2 py-1 rounded-md border border-cyan-500/30 inline-flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>Web Syllabus</span>
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-[var(--text-secondary)] tabular-nums">
+                        {totalActiveChapters} Exam Chapters
+                      </span>
+                      <a
+                        href={getWebSyllabusSearchUrl(settingsSubjectSearch)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 px-2 py-1 rounded-md border border-cyan-500/30 inline-flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Web Syllabus</span>
+                      </a>
+                    </div>
                   </div>
 
                   {/* Active Enrolled Subjects Compact Chips */}
@@ -1210,57 +1320,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     })}
                   </div>
                 </div>
-              )}
-            </div>
-          );
-
-          return isGuestLocked ? (
-            <LockedFeatureOverlay
-              variant="compact"
-              featureLabel="Subjects & Chapters"
-              onCompleteProfile={triggerCompleteProfile}
-            >
-              {subjectsDropdown}
-            </LockedFeatureOverlay>
-          ) : (
-            subjectsDropdown
-          );
-        })()}
-
-        {/* DROPDOWN 4: Study References & Chapter Stages */}
-        {(() => {
-          const stagesDropdown = (
-            <div
-              className={`rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm ${
-                isStagesDropdownOpen ? 'border-cyan-400/70' : 'border-[var(--border-color)] hover:border-cyan-400/50'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setIsStagesDropdownOpen((v) => !v)}
-                aria-expanded={isStagesDropdownOpen}
-                className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
-                    <Bookmark className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
-                      Study References &amp; Stages
-                    </span>
-                    <span className="text-[11px] text-[var(--text-secondary)] block truncate tabular-nums">
-                      {selectedStages.length} Active (Min 4) · {selectedStages.slice(0, 3).map((s) => s.shortLabel).join(', ')}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-emerald-400 shrink-0">
-                  {isStagesDropdownOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </span>
-              </button>
-
-              {isStagesDropdownOpen && (
-                <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-2.5 animate-in fade-in">
+              ) : (
+                <div className="space-y-2.5">
                   {/* Search & Add Custom Trigger */}
                   <div className="flex items-center gap-1.5">
                     <div className="relative flex-1 min-w-0">
@@ -1423,246 +1484,265 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           return isGuestLocked ? (
             <LockedFeatureOverlay
               variant="compact"
-              featureLabel="Study References"
+              featureLabel="Subjects & Study Stages"
               onCompleteProfile={triggerCompleteProfile}
             >
-              {stagesDropdown}
+              {subjectsPanel}
             </LockedFeatureOverlay>
           ) : (
-            stagesDropdown
+            subjectsPanel
           );
         })()}
 
-        {/* DROPDOWN 5: Study Medium (Textbook Language) */}
-        <div
-          className={`rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm ${
-            isMediumMenuOpen ? 'border-cyan-400/70' : 'border-[var(--border-color)] hover:border-cyan-400/50'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => setIsMediumMenuOpen((v) => !v)}
-            aria-expanded={isMediumMenuOpen}
-            className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
-                <Globe className="w-4 h-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
-                  Study Medium (Textbook Language)
-                </span>
-                <span className="text-[11px] text-[var(--text-secondary)] block truncate tabular-nums">
-                  {activeLanguageObj.flag} {activeLanguageObj.name} · {SUPPORTED_LANGUAGES.length} Languages
-                </span>
-              </div>
+        {/* DROPDOWN PANEL FOR EXCEEDING FEATURES: Language, Fonts, Guide, YouTube, Offline App & Session */}
+        {activeFeatureDrawer === 'more' && (
+          <div className="rounded-xl bg-[var(--bg-card)] border border-emerald-400/60 p-4 space-y-3 shadow-md animate-in fade-in">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                Additional Preferences &amp; Tools
+              </span>
+              <button
+                type="button"
+                onClick={() => setActiveFeatureDrawer(null)}
+                className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                aria-label="Close More Options"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <span className="text-sky-400 shrink-0">
-              {isMediumMenuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </span>
-          </button>
 
-          {isMediumMenuOpen && (
-            <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-2 animate-in fade-in">
-              <div className="flex items-center gap-1.5">
-                <div className="relative flex-1 min-w-0">
-                  <Search className="w-3.5 h-3.5 text-sky-400 absolute left-2.5 top-2 pointer-events-none" />
-                  <AutoGrowPromptInput
-                    value={settingsMediumSearch}
-                    onValueChange={setSettingsMediumSearch}
-                    placeholder="Filter language..."
-                    maxHeightPx={80}
-                    ariaLabel="Filter study medium language"
-                    className="w-full pl-8 pr-6 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] focus:border-cyan-400 text-xs text-[var(--text-primary)] focus:outline-none"
-                  />
-                  {settingsMediumSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setSettingsMediumSearch('')}
-                      className="absolute right-2 top-1.5 text-[10px] text-[var(--text-secondary)] cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 items-start">
+              {/* Study Medium (Textbook Language) */}
+              <div
+                className={`rounded-xl bg-[var(--bg-elevated)] border transition-colors ${
+                  isMediumMenuOpen ? 'border-cyan-400/70' : 'border-[var(--border-color)] hover:border-cyan-400/50'
+                }`}
+              >
                 <button
                   type="button"
-                  onClick={() => handleSettingsGoogleCatalogSearch('languages')}
-                  disabled={catalogSearchLoading}
-                  className="px-2.5 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/35 text-cyan-300 font-bold text-[11px] cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                  onClick={() => setIsMediumMenuOpen((v) => !v)}
+                  aria-expanded={isMediumMenuOpen}
+                  className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
                 >
-                  {catalogSearchLoading ? '...' : 'Verify'}
-                </button>
-              </div>
-
-              {catalogSearchPanel?.section === 'languages' && (
-                <div className="p-2 rounded-lg bg-[var(--bg-elevated)] border border-cyan-500/30 space-y-1 text-[11px]">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-cyan-400 text-[10px]">Verified Textbook Mediums</span>
-                    <button
-                      type="button"
-                      onClick={() => setCatalogSearchPanel(null)}
-                      className="text-[10px] text-[var(--text-muted)] cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <p className="text-[var(--text-secondary)]">{catalogSearchPanel.summary}</p>
-                </div>
-              )}
-
-              <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
-                {SUPPORTED_LANGUAGES.filter((lang) => {
-                  if (!settingsMediumSearch.trim()) return true;
-                  const q = settingsMediumSearch.toLowerCase();
-                  return (
-                    lang.name.toLowerCase().includes(q) ||
-                    lang.nativeName.toLowerCase().includes(q) ||
-                    lang.code.toLowerCase().includes(q)
-                  );
-                }).map((lang) => {
-                  const isSelected = currentLanguage === lang.code;
-                  return (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => handleLanguageSelect(lang.code as LanguageMode)}
-                      className={`w-full px-2.5 py-1.5 rounded-lg text-left text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-400/40'
-                          : 'bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:border-cyan-400/30 border border-transparent'
-                      }`}
-                    >
-                      <span className="truncate">
-                        {lang.flag} {lang.name}{' '}
-                        <span className="text-[10px] text-[var(--text-muted)]">({lang.nativeName})</span>
-                      </span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* DROPDOWN 6: Font Style & Typography */}
-        <div
-          className={`rounded-xl bg-[var(--bg-card)] border transition-colors shadow-sm ${
-            isFontMenuOpen ? 'border-[var(--accent-primary)]/70' : 'border-[var(--border-color)] hover:border-[var(--accent-primary)]/50'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => setIsFontMenuOpen((v) => !v)}
-            aria-expanded={isFontMenuOpen}
-            className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div
-                style={{ fontFamily: activeFontObj.fontFamily }}
-                className="w-8 h-8 rounded-lg bg-[var(--accent-primary)]/15 border border-[var(--accent-primary)]/30 text-[var(--accent-primary)] flex items-center justify-center font-bold text-xs shrink-0"
-              >
-                Aa
-              </div>
-              <div className="min-w-0 flex-1">
-                <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
-                  Font Style &amp; Typography
-                </span>
-                <span
-                  style={{ fontFamily: activeFontObj.fontFamily }}
-                  className="text-[11px] text-[var(--text-secondary)] block truncate"
-                >
-                  {activeFontObj.name} · {activeFontObj.tag}
-                </span>
-              </div>
-            </div>
-            <span className="text-[var(--accent-primary)] shrink-0">
-              {isFontMenuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </span>
-          </button>
-
-          {isFontMenuOpen && (
-            <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-1 max-h-56 overflow-y-auto animate-in fade-in">
-              {fontOptions.map((font) => {
-                const isSelected = currentFont === font.key;
-                return (
-                  <button
-                    key={font.key}
-                    type="button"
-                    onClick={() => handleFontSelect(font.key)}
-                    className={`w-full px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer flex items-center justify-between gap-2 ${
-                      isSelected
-                        ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold border border-[var(--accent-primary)]/40'
-                        : 'bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:border-[var(--accent-primary)]/30 border border-transparent'
-                    }`}
-                  >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                      <Globe className="w-4 h-4" />
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <span style={{ fontFamily: font.fontFamily }} className="text-xs block truncate">
-                        {font.name}
+                      <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
+                        Study Medium (Textbook Language)
                       </span>
-                      <span className="text-[10px] text-[var(--text-muted)] block truncate">
-                        {font.tag} · {font.sample}
+                      <span className="text-[11px] text-[var(--text-secondary)] block truncate tabular-nums">
+                        {activeLanguageObj.flag} {activeLanguageObj.name} · {SUPPORTED_LANGUAGES.length} Languages
                       </span>
                     </div>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+                  </div>
+                  <span className="text-sky-400 shrink-0">
+                    {isMediumMenuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </span>
+                </button>
 
-      {/* ========================================================
-          3. COMPACT UTILITY ROW: MASTER VIDEO GUIDE, CREATOR YOUTUBE & OFFLINE APP
-         ======================================================== */}
-      <div className={`grid grid-cols-1 gap-2.5 items-stretch ${onOpenVideoTour ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
-        {onOpenVideoTour && (
-          <button
-            type="button"
-            onClick={onOpenVideoTour}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-cyan-400 text-left cursor-pointer transition-colors flex items-center justify-between gap-2.5"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0">
-                <Film className="w-4 h-4" />
+                {isMediumMenuOpen && (
+                  <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-2 animate-in fade-in">
+                    <div className="flex items-center gap-1.5">
+                      <div className="relative flex-1 min-w-0">
+                        <Search className="w-3.5 h-3.5 text-sky-400 absolute left-2.5 top-2 pointer-events-none" />
+                        <AutoGrowPromptInput
+                          value={settingsMediumSearch}
+                          onValueChange={setSettingsMediumSearch}
+                          placeholder="Filter language..."
+                          maxHeightPx={80}
+                          ariaLabel="Filter study medium language"
+                          className="w-full pl-8 pr-6 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] focus:border-cyan-400 text-xs text-[var(--text-primary)] focus:outline-none"
+                        />
+                        {settingsMediumSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setSettingsMediumSearch('')}
+                            className="absolute right-2 top-1.5 text-[10px] text-[var(--text-secondary)] cursor-pointer"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSettingsGoogleCatalogSearch('languages')}
+                        disabled={catalogSearchLoading}
+                        className="px-2.5 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/35 text-cyan-300 font-bold text-[11px] cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                      >
+                        {catalogSearchLoading ? '...' : 'Verify'}
+                      </button>
+                    </div>
+
+                    {catalogSearchPanel?.section === 'languages' && (
+                      <div className="p-2 rounded-lg bg-[var(--bg-card)] border border-cyan-500/30 space-y-1 text-[11px]">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-cyan-400 text-[10px]">Verified Textbook Mediums</span>
+                          <button
+                            type="button"
+                            onClick={() => setCatalogSearchPanel(null)}
+                            className="text-[10px] text-[var(--text-muted)] cursor-pointer"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p className="text-[var(--text-secondary)]">{catalogSearchPanel.summary}</p>
+                      </div>
+                    )}
+
+                    <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
+                      {SUPPORTED_LANGUAGES.filter((lang) => {
+                        if (!settingsMediumSearch.trim()) return true;
+                        const q = settingsMediumSearch.toLowerCase();
+                        return (
+                          lang.name.toLowerCase().includes(q) ||
+                          lang.nativeName.toLowerCase().includes(q) ||
+                          lang.code.toLowerCase().includes(q)
+                        );
+                      }).map((lang) => {
+                        const isSelected = currentLanguage === lang.code;
+                        return (
+                          <button
+                            key={lang.code}
+                            type="button"
+                            onClick={() => handleLanguageSelect(lang.code as LanguageMode)}
+                            className={`w-full px-2.5 py-1.5 rounded-lg text-left text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-400/40'
+                                : 'bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-cyan-400/30 border border-transparent'
+                            }`}
+                          >
+                            <span className="truncate">
+                              {lang.flag} {lang.name}{' '}
+                              <span className="text-[10px] text-[var(--text-muted)]">({lang.nativeName})</span>
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-[var(--text-primary)] truncate">
-                  Master Guide Video &amp; Handbook
-                </p>
-                <p className="text-[10px] text-[var(--text-muted)] truncate">
-                  Watch interactive 02:40 walkthrough
-                </p>
+
+              {/* Font Style & Typography */}
+              <div
+                className={`rounded-xl bg-[var(--bg-elevated)] border transition-colors ${
+                  isFontMenuOpen ? 'border-[var(--accent-primary)]/70' : 'border-[var(--border-color)] hover:border-[var(--accent-primary)]/50'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsFontMenuOpen((v) => !v)}
+                  aria-expanded={isFontMenuOpen}
+                  className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div
+                      style={{ fontFamily: activeFontObj.fontFamily }}
+                      className="w-8 h-8 rounded-lg bg-[var(--accent-primary)]/15 border border-[var(--accent-primary)]/30 text-[var(--accent-primary)] flex items-center justify-center font-bold text-xs shrink-0"
+                    >
+                      Aa
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] block truncate">
+                        Font Style &amp; Typography
+                      </span>
+                      <span
+                        style={{ fontFamily: activeFontObj.fontFamily }}
+                        className="text-[11px] text-[var(--text-secondary)] block truncate"
+                      >
+                        {activeFontObj.name} · {activeFontObj.tag}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[var(--accent-primary)] shrink-0">
+                    {isFontMenuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </span>
+                </button>
+
+                {isFontMenuOpen && (
+                  <div className="px-3.5 pb-3.5 pt-2 border-t border-[var(--border-color)] space-y-1 max-h-56 overflow-y-auto animate-in fade-in">
+                    {fontOptions.map((font) => {
+                      const isSelected = currentFont === font.key;
+                      return (
+                        <button
+                          key={font.key}
+                          type="button"
+                          onClick={() => handleFontSelect(font.key)}
+                          className={`w-full px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer flex items-center justify-between gap-2 ${
+                            isSelected
+                              ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold border border-[var(--accent-primary)]/40'
+                              : 'bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--accent-primary)]/30 border border-transparent'
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <span style={{ fontFamily: font.fontFamily }} className="text-xs block truncate">
+                              {font.name}
+                            </span>
+                            <span className="text-[10px] text-[var(--text-muted)] block truncate">
+                              {font.tag} · {font.sample}
+                            </span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
-            <span className="text-[11px] font-bold text-cyan-400 whitespace-nowrap shrink-0">Watch</span>
-          </button>
-        )}
 
-        <YouTubeChannelButton variant="card" />
+            {/* Utility Row Inside More Options Dropdown */}
+            <div className={`grid grid-cols-1 gap-2.5 items-stretch ${onOpenVideoTour ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+              {onOpenVideoTour && (
+                <button
+                  type="button"
+                  onClick={onOpenVideoTour}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-cyan-400 text-left cursor-pointer transition-colors flex items-center justify-between gap-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                      <Film className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                        Master Guide Video &amp; Handbook
+                      </p>
+                      <p className="text-[10px] text-[var(--text-muted)] truncate">
+                        Watch interactive 02:40 walkthrough
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-cyan-400 whitespace-nowrap shrink-0">Watch</span>
+                </button>
+              )}
 
-        <PWAInstallButton variant="card" />
-      </div>
+              <YouTubeChannelButton variant="card" />
 
-      {/* Compact Academic Session Strip */}
-      <div className="px-3.5 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-between flex-wrap gap-2 text-[11px]">
-        <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-          <Calendar className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          <span className="font-semibold text-[var(--text-primary)] tabular-nums">
-            CBSE Academic Session {getDynamicAcademicYear()}
-          </span>
-        </div>
-        {onSimulateAutoReset && (
-          <button
-            type="button"
-            onClick={onSimulateAutoReset}
-            className="text-[11px] font-semibold text-emerald-400 hover:underline cursor-pointer whitespace-nowrap"
-          >
-            Test Rollover (+5 Days)
-          </button>
+              <PWAInstallButton variant="card" />
+            </div>
+
+            {/* Compact Academic Session Strip */}
+            <div className="px-3.5 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-color)] flex items-center justify-between flex-wrap gap-2 text-[11px]">
+              <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+                <Calendar className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="font-semibold text-[var(--text-primary)] tabular-nums">
+                  CBSE Academic Session {getDynamicAcademicYear()}
+                </span>
+              </div>
+              {onSimulateAutoReset && (
+                <button
+                  type="button"
+                  onClick={onSimulateAutoReset}
+                  className="text-[11px] font-semibold text-emerald-400 hover:underline cursor-pointer whitespace-nowrap"
+                >
+                  Test Rollover (+5 Days)
+                </button>
+              )}
+            </div>
+          </div>
         )}
       </div>
 

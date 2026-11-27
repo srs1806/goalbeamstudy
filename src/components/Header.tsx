@@ -4,7 +4,7 @@ import { BlinkingHeart } from './BlinkingHeart';
 import { YouTubeChannelButton } from './YouTubeChannelButton';
 import { ThemeMode, LanguageMode } from '../types/tracker';
 import { THEME_IDENTITIES, getThemeIdentity } from '../data/themesCatalog';
-import { Palette, ChevronDown, Check, RotateCcw, Film } from 'lucide-react';
+import { Palette, ChevronDown, Check, RotateCcw, Film, MoreHorizontal } from 'lucide-react';
 
 interface HeaderProps {
   currentTheme: ThemeMode;
@@ -24,9 +24,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenVideoTour,
 }) => {
   const [isThemeOpen, setIsThemeOpen] = useState(false);
+  const [isStudyMenuOpen, setIsStudyMenuOpen] = useState(false);
   const [showHeaderResetConfirm, setShowHeaderResetConfirm] = useState(false);
+
   const mobileThemeMenuRef = useRef<HTMLDivElement>(null);
   const desktopThemeMenuRef = useRef<HTMLDivElement>(null);
+  const mobileStudyMenuRef = useRef<HTMLDivElement>(null);
+  const desktopStudyMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,9 +40,27 @@ export const Header: React.FC<HeaderProps> = ({
       if (!inMobileTheme && !inDesktopTheme) {
         setIsThemeOpen(false);
       }
+
+      const inMobileMenu = mobileStudyMenuRef.current?.contains(target);
+      const inDesktopMenu = desktopStudyMenuRef.current?.contains(target);
+      if (!inMobileMenu && !inDesktopMenu) {
+        setIsStudyMenuOpen(false);
+      }
     };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsThemeOpen(false);
+        setIsStudyMenuOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   // Pre-decode all 5 mode icons immediately so opening the menu renders every photo instantaneously
@@ -55,18 +77,110 @@ export const Header: React.FC<HeaderProps> = ({
 
   const currentThemeObj = getThemeIdentity(currentTheme);
 
+  const renderThemeDropdown = (widthClass: string, headerLabel: string) => (
+    <div
+      className={`absolute right-0 mt-2 ${widthClass} max-h-[70dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95`}
+    >
+      <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-color)] mb-1 flex items-center gap-1.5">
+        <Palette className="w-3 h-3 text-[var(--accent-primary)]" />
+        {headerLabel}
+      </div>
+      {THEME_IDENTITIES.map((theme) => {
+        const isSelected = currentTheme === theme.key;
+        return (
+          <button
+            key={theme.key}
+            type="button"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX || rect.left + rect.width / 2;
+              const y = e.clientY || rect.top + rect.height / 2;
+              setIsThemeOpen(false);
+              onThemeChange(theme.key, { x, y });
+            }}
+            className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+              isSelected
+                ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold'
+                : 'text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <img
+                src={theme.imageUrl}
+                alt={theme.name}
+                width={20}
+                height={20}
+                loading="eager"
+                decoding="sync"
+                className="w-5 h-5 rounded-md object-cover shrink-0 bg-slate-900"
+              />
+              <span className="truncate">{theme.name}</span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span
+                aria-hidden="true"
+                className={`w-2.5 h-2.5 rounded-full ${theme.swatchClass}`}
+              />
+              {isSelected && <Check className="w-3.5 h-3.5" />}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderStudyMenuDropdown = () => (
+    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 space-y-1">
+      <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-color)] mb-1">
+        Study Tools &amp; Options
+      </div>
+
+      {onOpenVideoTour && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsStudyMenuOpen(false);
+            onOpenVideoTour();
+          }}
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 transition-colors cursor-pointer text-left"
+        >
+          <Film className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+          <span>Website Master Guide</span>
+        </button>
+      )}
+
+      <div
+        onClick={() => setIsStudyMenuOpen(false)}
+        className="w-full"
+      >
+        <YouTubeChannelButton variant="card" className="w-full justify-center" />
+      </div>
+
+      <div className="pt-1 border-t border-[var(--border-color)]/70">
+        <button
+          type="button"
+          onClick={() => {
+            setIsStudyMenuOpen(false);
+            setShowHeaderResetConfirm(true);
+          }}
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-rose-300 hover:bg-rose-500/15 transition-colors cursor-pointer text-left"
+        >
+          <RotateCcw className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+          <span>Reset Tracker to Step 1</span>
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <header className="sticky top-0 z-50 shrink-0 w-full backdrop-blur-md bg-[var(--bg-card)]/95 border-b border-[var(--border-color)] px-2.5 sm:px-6 py-1.5 sm:py-2.5 transition-all shadow-sm">
       <div className="max-w-7xl mx-auto">
         {/* ========================================================
             MOBILE VIEW ONLY (< md):
-            Section 1: GOALBEAM ⚡ pinned brand name with logo on both sides
-            Section 2: Dedicated controls below name: Guide, Reset, Theme, Profile
+            Clean Brand Lockup + Compact 2-Control Utility Row (Theme + Menu)
            ======================================================== */}
         <div className="flex flex-col gap-1.5 md:hidden">
-          {/* Section 1: Mobile Centered Brand with GOALBEAM ⚡ and Logo */}
           <div className="flex items-center justify-between w-full">
-            {/* Left Flank Logo */}
             <button
               type="button"
               onClick={onBrandClick}
@@ -76,7 +190,6 @@ export const Header: React.FC<HeaderProps> = ({
               <Logo size="sm" className="w-7 h-7 sm:w-9 sm:h-9 rounded-full shadow-sm" />
             </button>
 
-            {/* Center: Pinned GOALBEAM ⚡ Website Name & Made with love arranged under website name */}
             <button
               type="button"
               onClick={onBrandClick}
@@ -89,7 +202,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="text-amber-400 select-none">⚡</span>
                 </span>
               </div>
-              {/* Made with love arranged under website name in distinct signature font & color */}
               <div className="creator-signature flex items-center justify-center gap-1 text-[10px] mt-0.5 flex-wrap leading-none">
                 <span className="creator-prefix">Made with</span>
                 <BlinkingHeart size="xs" />
@@ -97,7 +209,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </button>
 
-            {/* Right Flank Logo */}
             <button
               type="button"
               onClick={onBrandClick}
@@ -108,119 +219,66 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Section 2: Mobile Action Controls Row (Guide, Subscribe, Reset Tracker, Theme, Profile) */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1 border-t border-[var(--border-color)]/70 w-full">
-            {onOpenVideoTour && (
-              <button
-                type="button"
-                onClick={onOpenVideoTour}
-                className="inline-flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 transition-colors shrink-0 cursor-pointer shadow-sm leading-none whitespace-nowrap"
-                title="Open Master Video Guide"
-              >
-                <Film className="w-3 h-3 text-cyan-300 shrink-0" />
-                <span>Guide</span>
-              </button>
-            )}
-
-            <YouTubeChannelButton variant="header" compact />
-
-            {/* Reset Tracker Button */}
-            <button
-              type="button"
-              onClick={() => setShowHeaderResetConfirm(true)}
-              className="group inline-flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[10px] font-extrabold bg-gradient-to-r from-rose-500/25 via-red-500/20 to-orange-500/20 border border-rose-500/50 text-rose-300 hover:from-rose-500/35 hover:to-orange-500/30 transition-colors shrink-0 cursor-pointer shadow-sm leading-none whitespace-nowrap"
-              title="Reset Study Tracker to Step 1"
-            >
-              <span className="shrink-0">
-                <RotateCcw className="w-3 h-3 text-rose-300" />
-              </span>
-              <span>Reset</span>
-            </button>
-
+          <div className="flex items-center justify-center gap-2 pt-1 border-t border-[var(--border-color)]/70 w-full">
             {/* Theme Mode Selector */}
             <div className="relative shrink-0" ref={mobileThemeMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setIsThemeOpen(!isThemeOpen)}
-                  className="group inline-flex items-center justify-center gap-1.5 py-1 px-2 rounded-lg text-[10px] font-semibold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap"
-                  title="Select Theme"
-                >
-                  <img
-                    src={currentThemeObj.imageUrl}
-                    alt={currentThemeObj.name}
-                    width={16}
-                    height={16}
-                    loading="eager"
-                    decoding="sync"
-                    className="w-4 h-4 rounded object-cover shrink-0 bg-slate-900"
-                  />
-                  <span className="font-bold">{currentThemeObj.name}</span>
-                  <span
-                    aria-hidden="true"
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentThemeObj.swatchClass}`}
-                  />
-                </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsStudyMenuOpen(false);
+                  setIsThemeOpen(!isThemeOpen);
+                }}
+                className="group inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg text-[11px] font-semibold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap"
+                title="Select Theme Mode"
+              >
+                <img
+                  src={currentThemeObj.imageUrl}
+                  alt={currentThemeObj.name}
+                  width={16}
+                  height={16}
+                  loading="eager"
+                  decoding="sync"
+                  className="w-4 h-4 rounded object-cover shrink-0 bg-slate-900"
+                />
+                <span className="font-bold">{currentThemeObj.name}</span>
+                <span
+                  aria-hidden="true"
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentThemeObj.swatchClass}`}
+                />
+                <ChevronDown className="w-3 h-3 text-[var(--text-secondary)] shrink-0" />
+              </button>
 
-                {isThemeOpen && (
-                  <div className="absolute right-0 mt-2 w-44 max-h-[65dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in">
-                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-color)] mb-1 flex items-center gap-1.5">
-                      <Palette className="w-3 h-3 text-[var(--accent-primary)]" />
-                      Themes
-                    </div>
-                    {THEME_IDENTITIES.map((theme) => {
-                      const isSelected = currentTheme === theme.key;
-                      return (
-                        <button
-                          key={theme.key}
-                          onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const x = e.clientX || rect.left + rect.width / 2;
-                            const y = e.clientY || rect.top + rect.height / 2;
-                            setIsThemeOpen(false);
-                            onThemeChange(theme.key, { x, y });
-                          }}
-                          className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                            isSelected
-                              ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold'
-                              : 'text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <img
-                              src={theme.imageUrl}
-                              alt={theme.name}
-                              width={20}
-                              height={20}
-                              loading="eager"
-                              decoding="sync"
-                              className="w-5 h-5 rounded-md object-cover shrink-0 bg-slate-900"
-                            />
-                            <span className="truncate">{theme.name}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span
-                              aria-hidden="true"
-                              className={`w-2.5 h-2.5 rounded-full ${theme.swatchClass}`}
-                            />
-                            {isSelected && <Check className="w-3.5 h-3.5" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              {isThemeOpen && renderThemeDropdown('w-44', 'Themes')}
+            </div>
+
+            {/* Consolidated Study Menu (Master Guide, YouTube, Reset) */}
+            <div className="relative shrink-0" ref={mobileStudyMenuRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsThemeOpen(false);
+                  setIsStudyMenuOpen(!isStudyMenuOpen);
+                }}
+                className="inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg text-[11px] font-bold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap"
+                title="Open Guide, YouTube & Reset Options"
+                aria-expanded={isStudyMenuOpen}
+              >
+                <MoreHorizontal className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
+                <span>Menu</span>
+              </button>
+
+              {isStudyMenuOpen && renderStudyMenuDropdown()}
+            </div>
           </div>
         </div>
 
         {/* ========================================================
             PC / DESKTOP VIEW ONLY (md: and above):
-            Pinned GOALBEAM ⚡ Brand Name + Scholar Greeting & Good Thought on Left
-            Made with love by Shahid Shaikh beside Reset Tracker + Theme + Profile on Right
+            Clean Calm Top Bar: Brand + Theme Switcher + Single More Menu
            ======================================================== */}
-        <div className="hidden md:flex items-center justify-between gap-4">
-          {/* Pinned Website Name: GOALBEAM ⚡ with Made with love under website name in small font */}
+        <div className="hidden md:flex items-center justify-between gap-6">
           <button
+            type="button"
             onClick={onBrandClick}
             className="flex items-center gap-3 text-left group transition-opacity hover:opacity-95 focus:outline-none min-w-0 cursor-pointer"
             title="GOALBEAM Study Tracker - Go to Dashboard"
@@ -229,14 +287,12 @@ export const Header: React.FC<HeaderProps> = ({
               <Logo size="md" className="w-10 h-10 lg:w-11 lg:h-11 rounded-full shadow-sm" />
             </div>
             <div className="min-w-0 flex flex-col justify-center">
-              {/* Permanent Pinned Brand: GOALBEAM ⚡ */}
               <div className="flex items-center gap-2">
                 <span className="text-xl lg:text-2xl group-hover:brightness-125 transition-all flex items-center gap-1 shrink-0">
                   <span className="brand-wordmark">GOALBEAM</span>
                   <span className="text-amber-400 select-none">⚡</span>
                 </span>
               </div>
-              {/* Made with love by Shahid Shaikh arranged under website name in distinct font & color */}
               <div className="creator-signature flex items-center gap-1.5 text-xs mt-0.5">
                 <span className="creator-prefix">Made with</span>
                 <BlinkingHeart size="xs" />
@@ -245,40 +301,16 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </button>
 
-          {/* Action Controls: Guide, Subscribe, Reset Tracker, Theme, Profile */}
-          <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-            {onOpenVideoTour && (
-              <button
-                type="button"
-                onClick={onOpenVideoTour}
-                className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-extrabold bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 transition-colors cursor-pointer shrink-0 shadow-sm whitespace-nowrap"
-                title="Open Master Video Guide"
-              >
-                <Film className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
-                <span>Guide</span>
-              </button>
-            )}
-
-            <YouTubeChannelButton variant="header" />
-
-            {/* Permanent Reset Tracker Button */}
-            <button
-              type="button"
-              onClick={() => setShowHeaderResetConfirm(true)}
-              className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-extrabold bg-gradient-to-r from-rose-500/25 via-red-500/20 to-orange-500/20 border border-rose-500/50 text-rose-300 hover:from-rose-500/35 hover:to-orange-500/30 transition-colors cursor-pointer shrink-0 shadow-sm whitespace-nowrap"
-              title="Reset Study Tracker to Step 1"
-            >
-              <span className="inline-flex">
-                <RotateCcw className="w-3.5 h-3.5 text-rose-300" />
-              </span>
-              <span>Reset Tracker</span>
-            </button>
-
-            {/* Theme Dropdown */}
+          {/* Calm Right Controls: Theme Dropdown + Consolidated Study Menu */}
+          <div className="flex items-center gap-2.5 shrink-0">
             <div className="relative shrink-0" ref={desktopThemeMenuRef}>
               <button
-                onClick={() => setIsThemeOpen(!isThemeOpen)}
-                className="group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+                type="button"
+                onClick={() => {
+                  setIsStudyMenuOpen(false);
+                  setIsThemeOpen(!isThemeOpen);
+                }}
+                className="group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
                 title="Select Theme"
               >
                 <img
@@ -298,54 +330,26 @@ export const Header: React.FC<HeaderProps> = ({
                 <ChevronDown className="w-3 h-3 text-[var(--text-secondary)] shrink-0" />
               </button>
 
-              {isThemeOpen && (
-                <div className="absolute right-0 mt-2 w-48 max-h-[70dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95">
-                  <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-color)] mb-1 flex items-center gap-1.5">
-                    <Palette className="w-3 h-3 text-[var(--accent-primary)]" />
-                    Select Theme
-                  </div>
-                  {THEME_IDENTITIES.map((theme) => {
-                    const isSelected = currentTheme === theme.key;
-                    return (
-                      <button
-                        key={theme.key}
-                        onClick={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const x = e.clientX || rect.left + rect.width / 2;
-                          const y = e.clientY || rect.top + rect.height / 2;
-                          setIsThemeOpen(false);
-                          onThemeChange(theme.key, { x, y });
-                        }}
-                        className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                          isSelected
-                            ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold'
-                            : 'text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <img
-                            src={theme.imageUrl}
-                            alt={theme.name}
-                            width={20}
-                            height={20}
-                            loading="eager"
-                            decoding="sync"
-                            className="w-5 h-5 rounded-md object-cover shrink-0 bg-slate-900"
-                          />
-                          <span className="truncate">{theme.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span
-                            aria-hidden="true"
-                            className={`w-2.5 h-2.5 rounded-full ${theme.swatchClass}`}
-                          />
-                          {isSelected && <Check className="w-3.5 h-3.5" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              {isThemeOpen && renderThemeDropdown('w-48', 'Select Theme')}
+            </div>
+
+            <div className="relative shrink-0" ref={desktopStudyMenuRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsThemeOpen(false);
+                  setIsStudyMenuOpen(!isStudyMenuOpen);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+                title="Study Guide, YouTube Channel & Reset Options"
+                aria-expanded={isStudyMenuOpen}
+              >
+                <MoreHorizontal className="w-4 h-4 text-[var(--accent-primary)] shrink-0" />
+                <span>Menu</span>
+                <ChevronDown className="w-3 h-3 text-[var(--text-secondary)] shrink-0" />
+              </button>
+
+              {isStudyMenuOpen && renderStudyMenuDropdown()}
             </div>
           </div>
         </div>

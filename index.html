@@ -328,8 +328,7 @@
   <body style="margin:0;background:#03050a;color:#e2e8f0">
     <div id="root">
       <div id="goalbeam-boot-splash" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:Outfit,Inter,system-ui,sans-serif;background:#03050a;color:#e2e8f0">
-        <div style="font-size:20px;font-weight:800;letter-spacing:0.12em;color:#f8fafc">GOALBEAM <span style="color:#fbbf24">⚡</span></div>
-        <p id="goalbeam-boot-status" style="margin:10px 0 0;font-size:13px;color:#94a3b8">Loading your Class 10 study workspace…</p>
+        <p id="goalbeam-boot-status" style="display:none;margin:10px 0 0;font-size:13px;color:#94a3b8"></p>
         <button id="goalbeam-boot-retry-btn" type="button" onclick="window.__goalbeamHardRecover && window.__goalbeamHardRecover()" style="display:none;margin-top:16px;padding:10px 18px;border:0;border-radius:10px;background:#fbbf24;color:#03050a;font-weight:800;font-size:13px;cursor:pointer">Reload Website</button>
       </div>
     </div>
@@ -375,6 +374,7 @@
           if (window.__goalbeamUnbuiltSource) {
             var ghStatus = document.getElementById('goalbeam-boot-status');
             if (ghStatus) {
+              ghStatus.style.display = 'block';
               ghStatus.textContent = 'GitHub Pages is serving unbuilt source files. Enable Settings -> Pages -> Source: GitHub Actions to deploy the built app.';
             }
             return;
@@ -388,7 +388,10 @@
           } catch (_) {}
           var status = document.getElementById('goalbeam-boot-status');
           var btn = document.getElementById('goalbeam-boot-retry-btn');
-          if (status) status.textContent = 'Connection was interrupted while loading. Tap below to refresh.';
+          if (status) {
+            status.style.display = 'block';
+            status.textContent = 'Connection was interrupted while loading. Tap below to refresh.';
+          }
           if (btn) btn.style.display = 'inline-block';
         }, 7000);
       })();

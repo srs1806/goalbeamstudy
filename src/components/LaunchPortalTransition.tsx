@@ -36,7 +36,7 @@ export const LaunchPortalTransition: React.FC<LaunchPortalTransitionProps> = ({
   // 5: Name "Made with ❤️ by Shahid Shaikh" & Website title
   // 6: Loading bar begins filling to 100%
   // 7: 3D Flip exit to website
-  const [animStage, setAnimStage] = useState<number>(0);
+  const [animStage, setAnimStage] = useState<number>(1);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [statusText, setStatusText] = useState<string>('Awakening Beast Core...');
   const [isFlippingOut, setIsFlippingOut] = useState<boolean>(false);
@@ -44,10 +44,6 @@ export const LaunchPortalTransition: React.FC<LaunchPortalTransitionProps> = ({
   const isTerminatedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // Stage 1: Panther emerges
-    const t1 = setTimeout(() => {
-      if (!isTerminatedRef.current) setAnimStage(1);
-    }, 200);
 
     // Stage 2: Text strikes in
     const t2 = setTimeout(() => {
@@ -75,7 +71,6 @@ export const LaunchPortalTransition: React.FC<LaunchPortalTransitionProps> = ({
     }, 5800);
 
     return () => {
-      clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(t4);
