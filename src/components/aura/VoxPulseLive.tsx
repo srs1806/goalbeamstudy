@@ -179,12 +179,28 @@ export const VoxPulseLive: React.FC = () => {
     setStatus('connecting');
 
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Microphone access is not available on this mobile browser.');
+      }
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStreamRef.current = micStream;
 
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      const inCtx = new AudioCtx({ sampleRate: 16000 });
-      const outCtx = new AudioCtx({ sampleRate: 24000 });
+      if (!AudioCtx) {
+        throw new Error('Web Audio is not supported on this device.');
+      }
+      let inCtx: AudioContext;
+      try {
+        inCtx = new AudioCtx({ sampleRate: 16000 });
+      } catch {
+        inCtx = new AudioCtx();
+      }
+      let outCtx: AudioContext;
+      try {
+        outCtx = new AudioCtx({ sampleRate: 24000 });
+      } catch {
+        outCtx = new AudioCtx();
+      }
       inputCtxRef.current = inCtx;
       outputCtxRef.current = outCtx;
       nextStartTimeRef.current = outCtx.currentTime;
@@ -386,8 +402,8 @@ export const VoxPulseLive: React.FC = () => {
                 key={line.id}
                 className={`p-2.5 rounded-lg text-xs ${
                   line.speaker === 'You'
-                    ? 'bg-sky-500/15 border border-sky-400/30 ml-8'
-                    : 'bg-[var(--bg-card)] border border-[var(--border-color)] mr-8'
+                    ? 'bg-sky-500/15 border border-sky-400/30 ml-4 sm:ml-8'
+                    : 'bg-[var(--bg-card)] border border-[var(--border-color)] mr-4 sm:mr-8'
                 }`}
               >
                 <span className="font-black text-sky-400 block mb-0.5">{line.speaker}</span>

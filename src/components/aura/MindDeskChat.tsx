@@ -221,9 +221,16 @@ export const MindDeskChat: React.FC<MindDeskChatProps> = ({ initialPrompt }) => 
       return;
     }
     try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
-      const mr = new MediaRecorder(stream);
+      const mimeType =
+        ['audio/webm', 'audio/mp4', 'audio/ogg'].find(
+          (t) => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(t)
+        ) || '';
+      const mr = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       mediaRecorderRef.current = mr;
 
       mr.ondataavailable = (e) => {
@@ -231,7 +238,8 @@ export const MindDeskChat: React.FC<MindDeskChatProps> = ({ initialPrompt }) => 
       };
       mr.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const resolvedType = mr.mimeType || mimeType || 'audio/webm';
+        const blob = new Blob(audioChunksRef.current, { type: resolvedType });
         if (blob.size < 100) return;
         setIsTranscribing(true);
         const reader = new FileReader();
@@ -242,7 +250,7 @@ export const MindDeskChat: React.FC<MindDeskChatProps> = ({ initialPrompt }) => 
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 audioBase64: reader.result as string,
-                mimeType: 'audio/webm',
+                mimeType: resolvedType,
               }),
             });
             const data = await res.json();

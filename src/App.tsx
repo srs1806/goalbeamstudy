@@ -32,8 +32,6 @@ import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
 import { LockedFeatureOverlay } from './components/LockedFeatureOverlay';
-import { YouTubeChannelButton } from './components/YouTubeChannelButton';
-import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { SEOContent } from './components/SEOContent';
 import { BlinkingHeart } from './components/BlinkingHeart';
@@ -43,39 +41,32 @@ import { AppUpdateModal } from './components/AppUpdateModal';
 import { ThemeTransitionOverlay, ActiveModeTransition } from './components/ThemeTransitionOverlay';
 import { attachScrollChoreography } from './utils/scrollChoreography';
 
-const Onboarding = lazy(() =>
-  import('./components/Onboarding').then((m) => ({ default: m.Onboarding }))
-);
-const ChaptersView = lazy(() =>
-  import('./components/ChaptersView').then((m) => ({ default: m.ChaptersView }))
-);
-const PracticeView = lazy(() =>
-  import('./components/PracticeView').then((m) => ({ default: m.PracticeView }))
-);
-const PlannerView = lazy(() =>
-  import('./components/PlannerView').then((m) => ({ default: m.PlannerView }))
-);
-const InsightsView = lazy(() =>
-  import('./components/InsightsView').then((m) => ({ default: m.InsightsView }))
-);
-const ResourcesView = lazy(() =>
-  import('./components/ResourcesView').then((m) => ({ default: m.ResourcesView }))
-);
-const FocusTimerView = lazy(() =>
-  import('./components/FocusTimerView').then((m) => ({ default: m.FocusTimerView }))
-);
-const LeaderboardView = lazy(() =>
-  import('./components/LeaderboardView').then((m) => ({ default: m.LeaderboardView }))
-);
-const SettingsView = lazy(() =>
-  import('./components/SettingsView').then((m) => ({ default: m.SettingsView }))
-);
-const AuraAIStudio = lazy(() =>
-  import('./components/AuraAIStudio').then((m) => ({ default: m.AuraAIStudio }))
-);
-const ManualVideoTour = lazy(() =>
-  import('./components/ManualVideoTour').then((m) => ({ default: m.ManualVideoTour }))
-);
+import {
+  loadOnboarding,
+  loadChaptersView,
+  loadPracticeView,
+  loadPlannerView,
+  loadInsightsView,
+  loadResourcesView,
+  loadFocusTimerView,
+  loadLeaderboardView,
+  loadSettingsView,
+  loadAuraAIStudio,
+  loadManualVideoTour,
+  preloadAllWorkspacePages,
+} from './utils/pagePreloader';
+
+const Onboarding = lazy(() => loadOnboarding().then((m) => ({ default: m.Onboarding })));
+const ChaptersView = lazy(() => loadChaptersView().then((m) => ({ default: m.ChaptersView })));
+const PracticeView = lazy(() => loadPracticeView().then((m) => ({ default: m.PracticeView })));
+const PlannerView = lazy(() => loadPlannerView().then((m) => ({ default: m.PlannerView })));
+const InsightsView = lazy(() => loadInsightsView().then((m) => ({ default: m.InsightsView })));
+const ResourcesView = lazy(() => loadResourcesView().then((m) => ({ default: m.ResourcesView })));
+const FocusTimerView = lazy(() => loadFocusTimerView().then((m) => ({ default: m.FocusTimerView })));
+const LeaderboardView = lazy(() => loadLeaderboardView().then((m) => ({ default: m.LeaderboardView })));
+const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
+const AuraAIStudio = lazy(() => loadAuraAIStudio().then((m) => ({ default: m.AuraAIStudio })));
+const ManualVideoTour = lazy(() => loadManualVideoTour().then((m) => ({ default: m.ManualVideoTour })));
 import { CLASS_10_SUBJECTS, STAGES_CONFIG } from './data/chaptersData';
 import { getProfileStages } from './data/stagesCatalog';
 import { ResourceCategory } from './data/resourcesData';
@@ -200,6 +191,11 @@ export default function App() {
     }
     return null;
   });
+
+  // Ensure all lazy page bundles preload eagerly even when portal splash is skipped
+  useEffect(() => {
+    void preloadAllWorkspacePages();
+  }, []);
 
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(CLASS_10_SUBJECTS[0].id);
   const [showVideoTourModal, setShowVideoTourModal] = useState<boolean>(false);
@@ -1147,7 +1143,7 @@ export default function App() {
         ref={mainScrollRef}
         className={
           currentScreen === 'onboarding'
-            ? 'relative flex-1 min-h-0 w-full max-w-4xl mx-auto px-2 sm:px-6 py-1.5 sm:py-3 overflow-hidden flex flex-col items-center justify-center'
+            ? 'relative flex-1 min-h-0 w-full max-w-4xl mx-auto px-2 sm:px-6 py-2 sm:py-3 overflow-y-auto overflow-x-clip flex flex-col items-center justify-start sm:justify-center'
             : 'relative flex-1 min-h-0 w-full max-w-7xl mx-auto px-3 sm:px-6 pt-4 sm:pt-5 pb-24 sm:pb-28 overflow-y-auto overflow-x-clip'
         }
       >
@@ -1431,8 +1427,6 @@ export default function App() {
                 <BlinkingHeart />
                 <span className="creator-author text-base sm:text-lg leading-none">by Shahid Shaikh</span>
               </div>
-              <YouTubeChannelButton variant="footer" />
-              <PWAInstallButton variant="footer" />
             </div>
             <p className="text-[11px] text-[var(--text-muted)] font-medium flex items-center justify-center gap-1.5 flex-wrap">
               <span className="brand-wordmark text-xs">GOALBEAM</span>

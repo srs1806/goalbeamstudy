@@ -555,6 +555,18 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
                             y: coord.y,
                           })
                         }
+                        onClick={() =>
+                          setHoveredPoint({
+                            subjectName: sc.name,
+                            stageLabel: `${pt.stageLabel}: ${pt.fullLabel}`,
+                            percent: pt.percent,
+                            doneCount: pt.done,
+                            totalCount: pt.total,
+                            color: sc.color,
+                            x: coord.x,
+                            y: coord.y,
+                          })
+                        }
                         onMouseLeave={() => setHoveredPoint(null)}
                       />
                     );
@@ -605,6 +617,18 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
                       opacity={highlightedSubject !== null ? '0.4' : '1'}
                       className="cursor-pointer shadow-[0_0_8px_#22d3ee]"
                       onMouseEnter={() =>
+                        setHoveredPoint({
+                          subjectName: 'Overall Board Mastery',
+                          stageLabel: `${m.shortLabel}: ${m.label}`,
+                          percent: pct,
+                          doneCount: Math.round((pct / 100) * (stats.totalStages || 1)),
+                          totalCount: stats.totalStages || 1,
+                          color: '#22d3ee',
+                          x: coord.x,
+                          y: coord.y,
+                        })
+                      }
+                      onClick={() =>
                         setHoveredPoint({
                           subjectName: 'Overall Board Mastery',
                           stageLabel: `${m.shortLabel}: ${m.label}`,
@@ -716,10 +740,10 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
           {/* Hover Tooltip Popup */}
           {hoveredPoint && (
             <div
-              className="absolute pointer-events-none z-20 px-3 py-2 rounded-xl bg-slate-950/95 border text-xs shadow-2xl backdrop-blur-md -translate-x-1/2 -translate-y-full mb-3"
+              className="absolute pointer-events-none z-20 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-950/95 border text-xs shadow-2xl backdrop-blur-md -translate-x-1/2 -translate-y-full mb-2 max-w-[190px] sm:max-w-none"
               style={{
-                left: `${(hoveredPoint.x / chartWidth) * 100}%`,
-                top: `${(hoveredPoint.y / chartHeight) * 100}%`,
+                left: `${Math.min(80, Math.max(20, (hoveredPoint.x / chartWidth) * 100))}%`,
+                top: `${Math.max(28, (hoveredPoint.y / chartHeight) * 100)}%`,
                 borderColor: hoveredPoint.color,
                 boxShadow: `0 0 16px ${hoveredPoint.color}50`,
               }}

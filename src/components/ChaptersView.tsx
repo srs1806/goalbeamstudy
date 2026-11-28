@@ -223,8 +223,8 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
     setActiveIndex((prev) => (prev > 0 ? prev - 1 : maxIndex));
   };
 
-  // Dynamically size the 3D card based on mobile screen width so it fits properly
-  const cardWidth = Math.min(220, Math.max(160, Math.floor((viewportWidth - 110) / visibleCount)));
+  // Dynamically size the 3D card based on mobile screen width so it never crowds left/right arrow buttons
+  const cardWidth = Math.min(220, Math.max(132, Math.floor((viewportWidth - 156) / visibleCount)));
   const cardGap = 8;
   const containerWidth = visibleCount * cardWidth + (visibleCount - 1) * cardGap;
 
@@ -232,7 +232,7 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
     <div className="pt-2 border-t border-[var(--border-color)] space-y-1.5">
       {/* 3D Stage Carousel Deck Container */}
       <div
-        className="relative h-12 flex items-center justify-between select-none px-1"
+        className="relative h-12 flex items-center justify-between select-none px-0.5 sm:px-1"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -251,8 +251,8 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
 
         {/* 3D Stage Cards Window */}
         <div
-          className="relative h-10 flex-1 flex items-center justify-center overflow-visible mx-1"
-          style={{ width: `${containerWidth}px` }}
+          className="relative h-10 flex-1 flex items-center justify-center overflow-hidden rounded-xl mx-1 min-w-0"
+          style={{ maxWidth: `${Math.max(containerWidth + 44, 176)}px` }}
         >
           {stages.map((st, idx) => {
             const status: StageStatus = chapterStages[st.key] || 'none';
@@ -266,7 +266,9 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
             let filter = 'none';
 
             // Add live touch swipe nudging for buttery smooth response
-            const swipeNudge = isSwiping ? Math.max(-30, Math.min(30, touchDeltaX * 0.4)) : 0;
+            const swipeNudge = isSwiping ? Math.max(-24, Math.min(24, touchDeltaX * 0.4)) : 0;
+            const sideStep = visibleCount === 1 ? 16 : 26;
+            const sideMax = visibleCount === 1 ? 32 : 68;
 
             if (isInFrontWindow) {
               const windowSlot = idx - activeIndex;
@@ -277,7 +279,7 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
             } else if (idx >= activeIndex + visibleCount) {
               const rightmostSlotX = ((visibleCount - 1) / 2) * (cardWidth + cardGap) + swipeNudge;
               const diff = idx - (activeIndex + visibleCount - 1);
-              const offsetPx = rightmostSlotX + Math.min(diff * 26, 68);
+              const offsetPx = rightmostSlotX + Math.min(diff * sideStep, sideMax);
               const scale = Math.max(0.82, 1 - diff * 0.06);
               const rotY = -Math.min(diff * 8, 20);
               transform = `translateX(${offsetPx}px) scale(${scale}) translateZ(${-diff * 35}px) rotateY(${rotY}deg)`;
@@ -286,7 +288,7 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
             } else {
               const leftmostSlotX = -((visibleCount - 1) / 2) * (cardWidth + cardGap) + swipeNudge;
               const diff = activeIndex - idx;
-              const offsetPx = leftmostSlotX - Math.min(diff * 26, 68);
+              const offsetPx = leftmostSlotX - Math.min(diff * sideStep, sideMax);
               const scale = Math.max(0.82, 1 - diff * 0.06);
               const rotY = Math.min(diff * 8, 20);
               transform = `translateX(${offsetPx}px) scale(${scale}) translateZ(${-diff * 35}px) rotateY(${rotY}deg)`;
@@ -375,7 +377,7 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
       </div>
 
       {/* Pagination Dot Indicator + Swipe Hint */}
-      <div className="flex items-center justify-between px-2 text-[10px]">
+      <div className="flex items-center justify-between flex-wrap gap-1.5 px-1 sm:px-2 text-[10px]">
         <div className="flex items-center gap-1.5">
           {stages.map((st, idx) => {
             const stStatus = chapterStages[st.key];
@@ -402,8 +404,8 @@ const AdaptiveStage3DDeck: React.FC<AdaptiveStage3DDeckProps> = ({
             );
           })}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[var(--text-muted)] font-medium">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[10px] text-[var(--text-muted)] font-medium truncate max-w-[190px] sm:max-w-none">
             {visibleCount === 1
               ? `${activeIndex + 1}/${stages.length}: ${stages[activeIndex]?.shortLabel} • Swipe ⇄`
               : `${visibleCount} visible of ${stages.length} stages • ⇄ 3D Rotate`}
@@ -964,7 +966,7 @@ export const ChaptersView: React.FC<ChaptersViewProps> = ({
                                 </div>
 
                                 {/* Header Action Controls: Resources Link (Open) + Mark All Done & Notes (Locked for Guest) */}
-                                <div className="flex items-center gap-1.5 sm:gap-2 self-end sm:self-auto shrink-0 flex-wrap justify-end">
+                                <div className="flex items-center gap-1.5 sm:gap-2 self-start sm:self-auto shrink-0 flex-wrap justify-start sm:justify-end">
                                   {onNavigateToResources && (
                                     <button
                                       type="button"

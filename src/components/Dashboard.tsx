@@ -31,7 +31,6 @@ import { LockedFeatureOverlay } from './LockedFeatureOverlay';
 import confetti from 'canvas-confetti';
 import { FlexCertificateModal } from './FlexCertificateModal';
 import { LiveTypingShowcase } from './LiveTypingShowcase';
-import { PWAInstallButton } from './PWAInstallButton';
 import { getT } from '../utils/translations';
 import { ExpandableText } from './ui/ResponsiveTextControls';
 
@@ -267,80 +266,152 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-5 pb-16 sm:pb-20 animate-in fade-in min-w-0">
-      {/* Top Bar Below Header: Collapsible Extras, Community & Achievements */}
-      <section className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm overflow-hidden">
+      {/* Top Bar Below Header: 1-Row / Max 2-Line Curiosity Vault (Extras, Community & Achievements) */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500/10 via-[var(--bg-card)] to-amber-500/10 border border-cyan-500/45 shadow-[0_0_20px_rgba(6,182,212,0.12)] hover:border-cyan-400/75 transition-all">
         <button
           type="button"
           onClick={toggleExtrasShelf}
-          className="w-full px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-left hover:bg-[var(--bg-elevated)]/60 transition-colors cursor-pointer"
+          className="w-full px-3.5 sm:px-5 py-2.5 flex items-center justify-between gap-3 text-left hover:bg-[var(--bg-elevated)]/40 transition-colors cursor-pointer"
           aria-expanded={showExtrasShelf}
         >
-          <div className="min-w-0">
-            <h2 className="text-xs sm:text-sm font-black tracking-tight text-[var(--text-primary)]">
-              Extras, Community &amp; Achievements
-            </h2>
-            <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] mt-0.5 truncate">
-              Flex 16:9 Certificate ·{' '}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0 animate-pulse" />
+              <h2 className="text-xs sm:text-sm font-black tracking-tight text-[var(--text-primary)] truncate">
+                Extras, Community &amp; Achievements
+              </h2>
+            </div>
+            <p className="text-[11px] sm:text-xs font-semibold text-[var(--accent-primary)] mt-0.5 line-clamp-2 sm:truncate leading-snug">
+              📜 16:9 Certificate · 🏆{' '}
               {currentUserRankEntry
-                ? `Rank #${currentUserRankEntry.rank}`
-                : 'Live Leaderboard'}{' '}
-              · Master Guide · Live Activity · App Install
+                ? `Your Rank #${currentUserRankEntry.rank}`
+                : 'Your Live Rank'}{' '}
+              · ✨ Master AI Studio · ⚡ Flashcards &amp; 10-MCQ
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-primary)] shrink-0 whitespace-nowrap">
-            <span>{showExtrasShelf ? 'Hide' : 'Show'}</span>
+
+          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-amber-300 text-slate-950 text-[11px] font-black shrink-0 whitespace-nowrap shadow-[0_0_12px_rgba(34,211,238,0.3)]">
+            <span>{showExtrasShelf ? 'Hide' : 'Peek Inside'}</span>
             {showExtrasShelf ? (
-              <ChevronUp className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <ChevronUp className="w-3.5 h-3.5 stroke-[2.5]" />
             ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <ChevronDown className="w-3.5 h-3.5 stroke-[2.5]" />
             )}
           </span>
         </button>
 
         {showExtrasShelf && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-2 border-t border-[var(--border-color)]/70 space-y-3.5 animate-in fade-in">
-            {/* Flex Certificate & Live Leaderboard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {/* Flex My Progress (Preserving viral 3D animated button) */}
-              <div className="rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-color)] px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-extrabold text-[var(--text-primary)]">
-                    16:9 Academic Certificate
+          <div className="px-3.5 sm:px-5 pb-3.5 pt-2.5 border-t border-cyan-500/25 space-y-2.5 animate-in fade-in">
+            {/* Compact 1-Row (4-Col Desktop / 2-Col Tablet) Unique Vault Tools */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* 1. 10-Question Live MCQ & Flashcards */}
+              <div className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-cyan-400/60 p-3 flex flex-col justify-between gap-2.5 transition-colors">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-400 flex items-center justify-center shrink-0">
+                    <CheckSquare className="w-4 h-4" />
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                    Share your progress velocity &amp; streak milestone card
-                  </p>
+                  <div className="min-w-0">
+                    <div className="text-xs font-extrabold text-[var(--text-primary)] leading-snug">
+                      10-MCQ &amp; Flashcards
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                      Quizzes &amp; formula deck
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('practice')}
+                  className="w-full py-1.5 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-[11px] flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap"
+                >
+                  <span>Start Quiz</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* 2. Goalbeam Master AI Studio */}
+              {(() => {
+                const auraCard = (
+                  <div className="dash-spotlight-ai rounded-xl border p-3 flex flex-col justify-between gap-2.5 h-full">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 text-slate-950 flex items-center justify-center shrink-0">
+                        <Sparkles className="w-4 h-4 text-slate-950" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className="text-xs font-black tracking-tight truncate">
+                            Master AI Studio
+                          </span>
+                          <InfoTooltip
+                            text="Deep-dive Class 10 course chapter overviews, flashcards, board scoring tips, and doubt solver."
+                            label="Goalbeam AI Studio info"
+                          />
+                        </div>
+                        <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                          AI doubts, notes &amp; voice
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('aura-ai')}
+                      className="w-full py-1.5 px-3 rounded-lg bg-gradient-to-r from-emerald-400 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-[11px] flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap"
+                    >
+                      <span>Open Studio</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+
+                return isGuestLocked ? (
+                  <LockedFeatureOverlay
+                    featureLabel="Goalbeam AI Studio"
+                    onCompleteProfile={() => onNavigate('onboarding')}
+                  >
+                    {auraCard}
+                  </LockedFeatureOverlay>
+                ) : (
+                  auraCard
+                );
+              })()}
+
+              {/* 3. Flex 16:9 Academic Certificate */}
+              <div className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-color)] p-3 flex flex-col justify-between gap-2.5">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-extrabold text-[var(--text-primary)] leading-snug">
+                      16:9 Certificate
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                      Flex your streak &amp; score
+                    </p>
+                  </div>
                 </div>
                 {isGuestLocked ? (
                   <button
                     type="button"
                     onClick={() => onNavigate('onboarding')}
-                    className="relative w-full sm:w-52 h-11 px-2.5 rounded-xl bg-[var(--bg-card)] border-2 border-[var(--border-color)] hover:border-amber-400/80 text-[var(--text-primary)] font-black text-[10px] sm:text-[11px] flex items-center justify-center gap-1.5 cursor-pointer transition-all shrink-0"
-                    title="Click on me to unlock for free"
+                    className="w-full py-1.5 px-2.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-amber-400/80 text-[var(--text-primary)] font-black text-[10px] flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>Click on me to unlock for free</span>
+                    <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span>Unlock Free</span>
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={handleFlexProgress}
-                    className="btn-3d-viral-flex keep-dark-surface relative w-full sm:w-56 h-11 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-600 hover:from-amber-300 hover:via-rose-400 hover:to-indigo-500 text-white font-black text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-[0_0_26px_rgba(244,63,94,0.7)] hover:shadow-[0_0_36px_rgba(244,63,94,0.95)] border-2 border-amber-300/80 group overflow-hidden shrink-0"
-                    title="Claim your official 16:9 AI-generated CBSE Academic Velocity Certificate & flex on WhatsApp!"
+                    className="btn-3d-viral-flex keep-dark-surface w-full py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-600 text-white font-black text-[11px] flex items-center justify-center gap-1.5 cursor-pointer border border-amber-300/70 whitespace-nowrap"
                   >
-                    <div className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
-                      <Award className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="tracking-wide text-xs uppercase font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] whitespace-nowrap">
-                      FLEX MY PROGRESS 📜
-                    </span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-amber-300 font-mono font-extrabold uppercase shrink-0 border border-amber-300/50">
-                      16:9
-                    </span>
+                    <span>FLEX PROGRESS 📜</span>
                   </button>
                 )}
               </div>
 
+              {/* 4. Live Syllabus Leaderboard */}
               {(() => {
                 const leaderboardCard = (
                   <div
@@ -353,20 +424,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         onNavigate('leaderboard');
                       }
                     }}
-                    className="rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-emerald-400/70 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition-colors group h-full"
+                    className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-emerald-400/70 p-3 flex flex-col justify-between gap-2.5 cursor-pointer transition-colors h-full"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shrink-0">
-                        <Trophy className="w-5 h-5" />
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shrink-0">
+                        <Trophy className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm font-extrabold text-[var(--text-primary)] break-words">
-                          Live Leaderboard of Syllabus
+                        <div className="text-xs font-extrabold text-[var(--text-primary)] leading-snug">
+                          Live Leaderboard
                         </div>
-                        <p className="text-xs text-[var(--text-secondary)] tabular-nums">
+                        <p className="text-[11px] text-[var(--text-secondary)] truncate tabular-nums">
                           {currentUserRankEntry
-                            ? `100% Real · Rank #${currentUserRankEntry.rank} of ${liveUsers.length} · ${currentUserRankEntry.overallPercentExact}% overall`
-                            : `100% Real · ${liveUsers.length} ${liveUsers.length === 1 ? 'user' : 'users'} ranked by overall syllabus & avg %`}
+                            ? `Rank #${currentUserRankEntry.rank} of ${liveUsers.length} · ${currentUserRankEntry.overallPercentExact}%`
+                            : `${liveUsers.length} live ranked scholars`}
                         </p>
                       </div>
                     </div>
@@ -376,10 +447,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         e.stopPropagation();
                         onNavigate('leaderboard');
                       }}
-                      className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                      className="w-full py-1.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap"
                     >
-                      <span>Open Leaderboard</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <span>View Ranks</span>
+                      <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
                 );
@@ -397,90 +468,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
               })()}
             </div>
 
-            {/* Website Master Guide Card */}
-            {onOpenGuide && (
-              <div className="dash-spotlight-guide relative overflow-hidden rounded-2xl border-2 px-4 py-3.5 shadow-[0_0_24px_rgba(6,182,212,0.18)] hover:shadow-[0_0_30px_rgba(6,182,212,0.32)] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
-                <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-cyan-400/15 blur-2xl pointer-events-none" />
-                <div className="flex items-center gap-3 min-w-0 relative z-10">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-400 via-sky-400 to-blue-600 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-[0_0_16px_rgba(34,211,238,0.45)]">
-                    <span className="text-xl">🎬</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                      <span className="text-sm sm:text-base font-black tracking-tight break-words">
-                        Website Master Guide
-                      </span>
-                      <InfoTooltip
-                        text="Interactive walkthrough with Hindi-English audio, screen simulator, and visual guide."
-                        label="Website Master Guide info"
-                      />
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)]">
-                      Interactive tour with Hindi-English walkthrough
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={onOpenGuide}
-                  className="relative z-10 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400 hover:brightness-110 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-[0_0_16px_rgba(34,211,238,0.4)] cursor-pointer transition-colors whitespace-nowrap shrink-0"
-                  title="Open Website Master Guide & Interactive Tour"
-                >
-                  <span>Open Guide</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {/* Live Global Platform Activity Ticker (Preserved Banner Animation) */}
-            <div className="dash-live-banner rounded-xl border p-2.5 sm:p-3 shadow-md flex items-center justify-between gap-2.5 flex-wrap">
+            {/* Compact Single-Line Live Global Activity Strip */}
+            <div className="dash-live-banner rounded-xl border px-3 py-2 shadow-sm flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] break-words leading-snug">
-                  🌍 <span className="text-emerald-400 font-extrabold">Live Global Platform Activity:</span> Over{' '}
+                <p className="text-[11px] sm:text-xs font-semibold text-[var(--text-primary)] truncate">
+                  🌍 <span className="text-emerald-400 font-extrabold">Live Activity:</span> Over{' '}
                   <strong className="text-emerald-300 font-extrabold tabular-nums">
                     {communityCount.toLocaleString()}+
                   </strong>{' '}
-                  Class 10 course chapters completed today by scholars across India on{' '}
-                  <span className="brand-wordmark text-xs sm:text-sm">GOALBEAM</span>!
+                  chapters completed today across India on{' '}
+                  <span className="brand-wordmark text-[11px]">GOALBEAM</span>
                 </p>
               </div>
-              <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold shrink-0">
-                <span>Nationwide Live Track</span>
-              </div>
-            </div>
-
-            {/* Install Goalbeam Offline App Banner */}
-            <div className="dash-live-banner rounded-xl border p-2.5 sm:p-3 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] break-words leading-snug">
-                  📲 <span className="text-emerald-400 font-extrabold">Install Goalbeam as an App (Mobile &amp; Desktop):</span>{' '}
-                  <span className="text-[var(--text-secondary)]">
-                    Add once to your Home Screen or Desktop for seamless offline study.
-                  </span>
-                </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-[var(--text-secondary)]">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="text-emerald-400 font-extrabold">✓</span>
-                    <span>100% Offline Study (Chapters, Quizzes &amp; Focus Timer)</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <span className="text-cyan-400 font-extrabold">✓</span>
-                    <span>1-Tap Main Screen App Launch</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <span className="text-amber-400 font-extrabold">✓</span>
-                    <span>Full-Screen, Zero Browser Clutter &amp; Faster Load</span>
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center shrink-0 self-start sm:self-center">
-                <PWAInstallButton variant="banner" />
-              </div>
+              {onOpenGuide && (
+                <button
+                  type="button"
+                  onClick={onOpenGuide}
+                  className="text-[11px] font-black text-cyan-300 hover:underline shrink-0 cursor-pointer whitespace-nowrap"
+                >
+                  🎬 Guide ↗
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -572,7 +584,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Core Daily Actions (Resources + Day Streak) */}
-          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 self-stretch sm:self-auto shrink-0 w-full sm:w-56">
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 self-stretch sm:self-auto shrink-0 w-full sm:w-auto md:w-56">
             <button
               type="button"
               onClick={() => onNavigate('resources')}
@@ -609,10 +621,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Essential 3-KPI Strip: 1st Paper Countdown, Daily Study Target & Overall Progress */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
+        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between flex-wrap gap-1.5 text-xs font-bold text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5 uppercase tracking-wider">
-              <Calendar className="w-4 h-4 text-[var(--accent-primary)]" />
+              <Calendar className="w-4 h-4 text-[var(--accent-primary)] shrink-0" />
               1st Paper Target Date
             </span>
             <span className="font-mono tabular-nums bg-[var(--bg-elevated)] px-2 py-0.5 rounded text-[var(--text-primary)]">
@@ -631,10 +643,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
+        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between flex-wrap gap-1.5 text-xs font-bold text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5 uppercase tracking-wider">
-              <Target className="w-4 h-4 text-amber-400" />
+              <Target className="w-4 h-4 text-amber-400 shrink-0" />
               Daily Study Target
             </span>
             <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-bold tabular-nums">
@@ -647,16 +659,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-base font-semibold text-[var(--text-secondary)]">stages daily</span>
             </div>
           </div>
-          <div className="text-[11px] text-[var(--text-secondary)] border-t border-[var(--border-color)] pt-2 flex items-center justify-between tabular-nums">
+          <div className="text-[11px] text-[var(--text-secondary)] border-t border-[var(--border-color)] pt-2 flex items-center justify-between flex-wrap gap-1 tabular-nums">
             <span>Stages Remaining: {stagesRemaining}</span>
             <span className="text-[var(--text-primary)] font-semibold">Goal: {profile.dailyHourGoal} hrs/day</span>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
+        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between flex-wrap gap-1.5 text-xs font-bold text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5 uppercase tracking-wider">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" />
               Overall Syllabus Progress
             </span>
             <span className="text-emerald-400 font-black text-sm tabular-nums">{overallPercent}%</span>
@@ -787,80 +799,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         );
       })()}
 
-      {/* TIER 3: Study Practice & AI Tools */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] px-4 py-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-400 flex items-center justify-center shrink-0">
-              <CheckSquare className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-extrabold text-[var(--text-primary)] break-words">
-                10-Question Live MCQ &amp; Flashcards
-              </div>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Chapter quizzes anytime · Formula revision deck
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate('practice')}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
-          >
-            <span>Start Quiz</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {(() => {
-          const auraCard = (
-            <div className="dash-spotlight-ai relative overflow-hidden rounded-2xl border-2 px-4 py-3.5 shadow-[0_0_24px_rgba(16,185,129,0.18)] hover:shadow-[0_0_30px_rgba(16,185,129,0.32)] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 group h-full">
-              <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-emerald-400/15 blur-2xl pointer-events-none" />
-              <div className="flex items-center gap-3 min-w-0 relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 via-cyan-400 to-indigo-600 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-[0_0_16px_rgba(16,185,129,0.45)]">
-                  <Sparkles className="w-5 h-5 text-slate-950" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                    <span className="text-sm sm:text-base font-black tracking-tight break-words">
-                      <span className="brand-wordmark">Goalbeam</span> AI Studio
-                    </span>
-                    <InfoTooltip
-                      text="Deep-dive Class 10 course chapter overviews, flashcards, board scoring tips, and doubt solver."
-                      label="Goalbeam AI Studio info"
-                    />
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    Doubt solver · Study notes · Revision assistant
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => onNavigate('aura-ai')}
-                className="relative z-10 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 hover:brightness-110 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-[0_0_16px_rgba(16,185,129,0.4)] cursor-pointer transition-colors whitespace-nowrap shrink-0"
-                title="Open Goalbeam AI Studio"
-              >
-                <span>Open Studio</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          );
-
-          return isGuestLocked ? (
-            <LockedFeatureOverlay
-              featureLabel="Goalbeam AI Studio"
-              onCompleteProfile={() => onNavigate('onboarding')}
-            >
-              {auraCard}
-            </LockedFeatureOverlay>
-          ) : (
-            auraCard
-          );
-        })()}
-      </div>
+      {/* Bottom TIER 3 cards moved cleanly into the Extras, Community & Achievements Vault above */}
 
 
       {/* 16:9 Official Class 10 Academic Certificate Modal */}

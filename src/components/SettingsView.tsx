@@ -617,7 +617,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
 
                 {isProfileMenuOpen && (
-                  <div className="absolute left-0 md:left-auto md:right-0 top-full mt-1.5 w-60 rounded-xl bg-[var(--bg-card)] border border-[var(--accent-primary)] shadow-2xl p-1.5 z-50 space-y-1 animate-in fade-in zoom-in-95">
+                  <div className="absolute left-0 md:left-auto md:right-0 top-full mt-1.5 w-60 max-w-[calc(100vw-2.5rem)] max-h-[60dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--accent-primary)] shadow-2xl p-1.5 z-50 space-y-1 animate-in fade-in zoom-in-95">
                     {profiles.map((p) => {
                       const isActive = !isGuestLocked && p.id === profile.id;
                       return (
@@ -888,7 +888,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
                 <div>
                   <label className="text-[10px] font-bold text-[var(--text-muted)] block mb-1">
                     Scholar Name

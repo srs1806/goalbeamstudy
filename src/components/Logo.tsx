@@ -40,7 +40,7 @@ export const Logo: React.FC<LogoProps> = ({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden ${borderless ? 'border-0' : 'border-2 border-cyan-500/80'} bg-slate-950 shadow-md select-none ${sizeMap[size]} ${className}`}
+      className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden p-[2px] ${borderless ? 'border-0' : 'border-2 border-cyan-500/80'} bg-slate-950 shadow-md select-none ${sizeMap[size]} ${className}`}
     >
       {!imgError ? (
         <img
@@ -48,13 +48,13 @@ export const Logo: React.FC<LogoProps> = ({
           alt="GOALBEAM Official Emblem"
           loading="eager"
           decoding="sync"
-          className="w-full h-full object-cover select-none block pointer-events-none rounded-full"
+          className="w-full h-full object-contain select-none block pointer-events-none rounded-full"
           style={{ 
             imageRendering: '-webkit-optimize-contrast',
             display: 'block',
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
+            objectFit: 'contain',
             filter: 'contrast(1.06) saturate(1.1)',
           }}
           onError={handleImgError}

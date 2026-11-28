@@ -178,6 +178,7 @@ export const SonicFlowStudio: React.FC = () => {
     }
 
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
     const ctx = new AudioCtx();
     audioCtxRef.current = ctx;
     if (ctx.state === 'suspended') await ctx.resume();
@@ -204,12 +205,14 @@ export const SonicFlowStudio: React.FC = () => {
   const handleExportWav = async () => {
     setIsExportingWav(true);
     try {
+      const OfflineCtx = window.OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+      if (!OfflineCtx) return;
       const sampleRate = 22050;
       const stepSec = 60 / Math.max(65, Math.min(140, track.bpm || 86)) / 2;
       const totalSteps = lengthMode === 'clip' ? 48 : 96;
       const durationSec = Math.min(45, totalSteps * stepSec + 1.5);
 
-      const offline = new OfflineAudioContext(1, Math.ceil(sampleRate * durationSec), sampleRate);
+      const offline = new OfflineCtx(1, Math.ceil(sampleRate * durationSec), sampleRate);
       for (let i = 0; i < totalSteps; i++) {
         triggerStepAudio(offline, offline.destination, i, i * stepSec + 0.05, track);
       }
@@ -222,6 +225,8 @@ export const SonicFlowStudio: React.FC = () => {
       a.download = `${track.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.wav`;
       a.click();
       URL.revokeObjectURL(url);
+    } catch {
+      // Offline audio export unsupported on restricted device
     } finally {
       setIsExportingWav(false);
     }

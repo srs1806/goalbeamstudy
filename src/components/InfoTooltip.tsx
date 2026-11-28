@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Info } from 'lucide-react';
 
 interface InfoTooltipProps {
@@ -15,7 +15,9 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   className = '',
 }) => {
   const [open, setOpen] = useState(false);
+  const [shiftX, setShiftX] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +42,31 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setShiftX(0);
+      return;
+    }
+    const clampToViewport = () => {
+      const tip = tooltipRef.current;
+      if (!tip || typeof window === 'undefined') return;
+      const rect = tip.getBoundingClientRect();
+      const pad = 10;
+      let delta = 0;
+      if (rect.right > window.innerWidth - pad) {
+        delta = window.innerWidth - pad - rect.right;
+      } else if (rect.left < pad) {
+        delta = pad - rect.left;
+      }
+      if (delta !== 0) {
+        setShiftX((prev) => prev + delta);
+      }
+    };
+    clampToViewport();
+    window.addEventListener('resize', clampToViewport);
+    return () => window.removeEventListener('resize', clampToViewport);
   }, [open]);
 
   const positionClasses =
@@ -74,9 +101,11 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
 
       {open && (
         <div
+          ref={tooltipRef}
           role="tooltip"
           onClick={(e) => e.stopPropagation()}
-          className={`absolute top-full mt-1.5 z-50 w-56 sm:w-64 p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-xl text-[11px] leading-relaxed font-medium text-[var(--text-secondary)] pointer-events-auto animate-in fade-in duration-150 ${positionClasses}`}
+          style={shiftX !== 0 ? { marginLeft: `${shiftX}px` } : undefined}
+          className={`absolute top-full mt-1.5 z-50 w-56 sm:w-64 max-w-[calc(100vw-1.25rem)] p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-xl text-[11px] leading-relaxed font-medium text-[var(--text-secondary)] pointer-events-auto animate-in fade-in duration-150 ${positionClasses}`}
         >
           {text}
         </div>

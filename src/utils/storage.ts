@@ -1,5 +1,5 @@
 import { CLASS_10_SUBJECTS, STAGES_CONFIG } from '../data/chaptersData';
-import { Profile, TrackerState, ThemeMode, FontMode, LanguageMode, ChapterProgress } from '../types/tracker';
+import { Profile, TrackerState, ThemeMode, FontMode, LanguageMode, ChapterProgress, StageStatus } from '../types/tracker';
 
 const STORAGE_KEY = 'cbse_study_tracker_v10';
 const OLD_STORAGE_KEY = 'cbse_study_tracker_v10_shahid';
@@ -153,9 +153,50 @@ export function loadTrackerState(): TrackerState {
   };
 }
 
+function compactProfileForStorage(profile: Profile): Profile {
+  const compactedProgress: Record<string, Record<string, ChapterProgress>> = {};
+  const rawProgress = profile.progress || {};
+
+  Object.entries(rawProgress).forEach(([subjectId, subjectChapters]) => {
+    if (!subjectChapters || typeof subjectChapters !== 'object') return;
+    const keptChapters: Record<string, ChapterProgress> = {};
+    Object.entries(subjectChapters).forEach(([chapterId, chapterProg]) => {
+      if (!chapterProg || typeof chapterProg !== 'object') return;
+      const stages = chapterProg.stages || {};
+      const activeStages: Record<string, StageStatus> = {};
+      Object.entries(stages).forEach(([k, v]) => {
+        if (v && v !== 'none') activeStages[k] = v;
+      });
+      const hasNotes = typeof chapterProg.notes === 'string' && chapterProg.notes.trim().length > 0;
+      const isCompleted = Boolean(chapterProg.completed);
+      if (isCompleted || hasNotes || Object.keys(activeStages).length > 0) {
+        keptChapters[chapterId] = {
+          ...(isCompleted ? { completed: true } : { completed: false }),
+          stages: activeStages as ChapterProgress['stages'],
+          ...(hasNotes ? { notes: chapterProg.notes } : {}),
+        };
+      }
+    });
+    if (Object.keys(keptChapters).length > 0) {
+      compactedProgress[subjectId] = keptChapters;
+    }
+  });
+
+  return {
+    ...profile,
+    progress: compactedProgress,
+  };
+}
+
 export function saveTrackerState(state: TrackerState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const compactedState: TrackerState = {
+      ...state,
+      profiles: Array.isArray(state.profiles)
+        ? state.profiles.map(compactProfileForStorage)
+        : [],
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(compactedState));
   } catch (err) {
     console.error('Failed to save tracker state', err);
   }

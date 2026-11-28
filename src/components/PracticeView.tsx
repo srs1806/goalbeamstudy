@@ -686,7 +686,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
                 </div>
 
                 {/* Progress Step Bar */}
-                <div className="grid grid-cols-10 gap-1.5">
+                <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
                   {questions.map((q, idx) => {
                     const isAnswered = answers[q.id] !== undefined;
                     const isCurrent = idx === currentIdx;

@@ -5,6 +5,7 @@ import { YouTubeChannelButton } from './YouTubeChannelButton';
 import { ThemeMode, LanguageMode } from '../types/tracker';
 import { THEME_IDENTITIES, getThemeIdentity } from '../data/themesCatalog';
 import { Palette, ChevronDown, Check, RotateCcw, Film, MoreHorizontal } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   currentTheme: ThemeMode;
@@ -77,9 +78,13 @@ export const Header: React.FC<HeaderProps> = ({
 
   const currentThemeObj = getThemeIdentity(currentTheme);
 
-  const renderThemeDropdown = (widthClass: string, headerLabel: string) => (
+  const renderThemeDropdown = (
+    widthClass: string,
+    headerLabel: string,
+    alignClass: string = 'right-0'
+  ) => (
     <div
-      className={`absolute right-0 mt-2 ${widthClass} max-h-[70dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95`}
+      className={`absolute ${alignClass} mt-2 ${widthClass} max-w-[calc(100vw-1rem)] max-h-[70dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95`}
     >
       <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-color)] mb-1 flex items-center gap-1.5">
         <Palette className="w-3 h-3 text-[var(--accent-primary)]" />
@@ -130,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
   );
 
   const renderStudyMenuDropdown = () => (
-    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 space-y-1">
+    <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1rem)] max-h-[72dvh] overflow-y-auto rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 space-y-1">
       <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border-color)] mb-1">
         Study Tools &amp; Options
       </div>
@@ -155,6 +160,17 @@ export const Header: React.FC<HeaderProps> = ({
       >
         <YouTubeChannelButton variant="card" className="w-full justify-center" />
       </div>
+
+      <a
+        href="https://srshub.ai.studio/"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => setIsStudyMenuOpen(false)}
+        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 transition-colors cursor-pointer text-left no-underline"
+      >
+        <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center text-amber-300 font-black">🌐</span>
+        <span>SRS Hub (Other Websites by Shahid Shaikh)</span>
+      </a>
 
       <div className="pt-1 border-t border-[var(--border-color)]/70">
         <button
@@ -219,16 +235,19 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-2 pt-1 border-t border-[var(--border-color)]/70 w-full">
+          <div className="flex items-center justify-center gap-1.5 pt-1 border-t border-[var(--border-color)]/70 w-full flex-nowrap">
+            {/* Install App Button on Left Side of Mode Selector */}
+            <PWAInstallButton variant="header-mobile" />
+
             {/* Theme Mode Selector */}
-            <div className="relative shrink-0" ref={mobileThemeMenuRef}>
+            <div className="relative shrink-0 min-w-0" ref={mobileThemeMenuRef}>
               <button
                 type="button"
                 onClick={() => {
                   setIsStudyMenuOpen(false);
                   setIsThemeOpen(!isThemeOpen);
                 }}
-                className="group inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg text-[11px] font-semibold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap"
+                className="group inline-flex items-center justify-center gap-1.5 py-1 px-2 rounded-lg text-[11px] font-semibold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap max-w-[140px]"
                 title="Select Theme Mode"
               >
                 <img
@@ -240,7 +259,7 @@ export const Header: React.FC<HeaderProps> = ({
                   decoding="sync"
                   className="w-4 h-4 rounded object-cover shrink-0 bg-slate-900"
                 />
-                <span className="font-bold">{currentThemeObj.name}</span>
+                <span className="font-bold truncate">{currentThemeObj.name}</span>
                 <span
                   aria-hidden="true"
                   className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentThemeObj.swatchClass}`}
@@ -248,7 +267,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <ChevronDown className="w-3 h-3 text-[var(--text-secondary)] shrink-0" />
               </button>
 
-              {isThemeOpen && renderThemeDropdown('w-44', 'Themes')}
+              {isThemeOpen &&
+                renderThemeDropdown('w-44', 'Themes', 'left-1/2 -translate-x-1/2')}
             </div>
 
             {/* Consolidated Study Menu (Master Guide, YouTube, Reset) */}
@@ -259,7 +279,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setIsThemeOpen(false);
                   setIsStudyMenuOpen(!isStudyMenuOpen);
                 }}
-                className="inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg text-[11px] font-bold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-bold bg-[var(--bg-elevated)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] text-[var(--text-primary)] cursor-pointer transition-colors shadow-sm leading-none whitespace-nowrap"
                 title="Open Guide, YouTube & Reset Options"
                 aria-expanded={isStudyMenuOpen}
               >
@@ -301,8 +321,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </button>
 
-          {/* Calm Right Controls: Theme Dropdown + Consolidated Study Menu */}
+          {/* Calm Right Controls: Install App Button + Theme Dropdown + Consolidated Study Menu */}
           <div className="flex items-center gap-2.5 shrink-0">
+            <PWAInstallButton variant="header-desktop" />
+
             <div className="relative shrink-0" ref={desktopThemeMenuRef}>
               <button
                 type="button"

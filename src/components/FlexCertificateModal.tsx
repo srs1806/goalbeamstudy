@@ -623,9 +623,9 @@ export const FlexCertificateModal: React.FC<FlexCertificateModalProps> = ({
         </div>
 
         {/* Certificate Preview Stage */}
-        <div className="p-2.5 sm:p-5 bg-slate-950 overflow-x-auto flex justify-center items-center">
+        <div className="p-2 sm:p-5 bg-slate-950 overflow-x-hidden flex justify-center items-center">
           <div
-            className="w-full max-w-4xl rounded-xl sm:rounded-2xl bg-[radial-gradient(ellipse_at_top,_#132240_0%,_#091122_55%,_#040812_100%)] border-[4px] sm:border-[6px] border-amber-400/90 p-3.5 sm:p-7 flex flex-col justify-between gap-2.5 sm:gap-3.5 relative shadow-[0_0_50px_rgba(245,158,11,0.25)] overflow-hidden min-w-[300px]"
+            className="w-full max-w-4xl min-w-0 rounded-xl sm:rounded-2xl bg-[radial-gradient(ellipse_at_top,_#132240_0%,_#091122_55%,_#040812_100%)] border-[4px] sm:border-[6px] border-amber-400/90 p-3 sm:p-7 flex flex-col justify-between gap-2.5 sm:gap-3.5 relative shadow-[0_0_50px_rgba(245,158,11,0.25)] overflow-hidden"
           >
             {/* Diagonal lattice overlay */}
             <div

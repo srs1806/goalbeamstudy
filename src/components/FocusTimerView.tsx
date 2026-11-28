@@ -724,18 +724,20 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
   const [distractionCount, setDistractionCount] = useState<number>(0);
   const [sessionToast, setSessionToast] = useState<string | null>(null);
   const [selectedTone] = useState<'chime' | 'digital' | 'zen' | 'bell'>('chime');
+  const [webglFailed, setWebglFailed] = useState<boolean>(false);
 
   // Stats
   const userFocusPoints = profile.focusPoints || 0;
   const userTotalMinutes = profile.totalFocusMinutes || 0;
   const userTreesGrown = profile.treesGrown || 0;
 
-  // 4. Three.js Refs
+  // 4. Three.js & Audio Refs
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const alarmAudioCtxRef = useRef<AudioContext | null>(null);
 
   // Diorama 3D Groups
   const islandGroupRef = useRef<THREE.Group | null>(null);
@@ -751,9 +753,15 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
     try {
       const AudioContextClass =
         window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
+      if (!alarmAudioCtxRef.current || alarmAudioCtxRef.current.state === 'closed') {
+        alarmAudioCtxRef.current = new AudioContextClass();
+      }
+      const ctx = alarmAudioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
 
       if (tone === 'chime') {
         const freqs = [523.25, 659.25, 783.99, 1046.5];
@@ -818,32 +826,46 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
   useEffect(() => {
     if (!mountRef.current) return;
 
-    const width = mountRef.current.clientWidth || 320;
-    const height = mountRef.current.clientHeight || 340;
+    let scene: THREE.Scene | null = null;
+    let renderer: THREE.WebGLRenderer | null = null;
+    let timer: THREE.Timer | null = null;
+    let domElem: HTMLCanvasElement | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
-    // A. Scene & Camera
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
+    let handleResize = () => {};
+    let handlePointerDown: (e: MouseEvent | TouchEvent) => void = () => {};
+    let handlePointerMove: (e: MouseEvent | TouchEvent) => void = () => {};
+    let handlePointerUp = () => {};
+    let handleContextLost: (e: Event) => void = () => {};
 
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0, 1.45, 6.8);
-    camera.lookAt(0, 0.55, 0);
-    cameraRef.current = camera;
+    try {
+      setWebglFailed(false);
+      const width = mountRef.current.clientWidth || 320;
+      const height = mountRef.current.clientHeight || 340;
 
-    // B. Transparent WebGL Renderer so background curved semicircle timer shines through!
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0x000000, 0); // 100% transparent background!
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
-    rendererRef.current = renderer;
+      // A. Scene & Camera
+      scene = new THREE.Scene();
+      sceneRef.current = scene;
 
-    mountRef.current.replaceChildren(renderer.domElement);
+      const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+      camera.position.set(0, 1.45, 6.8);
+      camera.lookAt(0, 0.55, 0);
+      cameraRef.current = camera;
+
+      // B. Transparent WebGL Renderer so background curved semicircle timer shines through!
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance',
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setClearColor(0x000000, 0); // 100% transparent background!
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
+      rendererRef.current = renderer;
+
+      mountRef.current.replaceChildren(renderer.domElement);
 
     // C. Dynamic 3D Lighting Setup with Continuous 3D Rotation
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
@@ -1055,25 +1077,33 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
     let isDragging = false;
     let prevMouseX = 0;
 
-    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+    handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0]?.clientX : e.clientX;
+      if (typeof clientX !== 'number') return;
       isDragging = true;
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       prevMouseX = clientX;
     };
 
-    const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+    handlePointerMove = (e: MouseEvent | TouchEvent) => {
       if (!isDragging || !islandGroupRef.current) return;
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientX = 'touches' in e ? e.touches[0]?.clientX : e.clientX;
+      if (typeof clientX !== 'number') return;
       const deltaX = clientX - prevMouseX;
       prevMouseX = clientX;
       islandGroupRef.current.rotation.y += deltaX * 0.009;
     };
 
-    const handlePointerUp = () => {
+    handlePointerUp = () => {
       isDragging = false;
     };
 
-    const domElem = renderer.domElement;
+    handleContextLost = (e: Event) => {
+      e.preventDefault();
+      setWebglFailed(true);
+    };
+
+    domElem = renderer.domElement;
+    domElem.addEventListener('webglcontextlost', handleContextLost, false);
     domElem.addEventListener('mousedown', handlePointerDown);
     window.addEventListener('mousemove', handlePointerMove);
     window.addEventListener('mouseup', handlePointerUp);
@@ -1083,17 +1113,18 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
     window.addEventListener('touchend', handlePointerUp);
 
     // L. Animation Loop: CONTINUOUS 3D ROTATION OF ISLAND, TREE & LIGHTING WITH THREE.Timer
-    const timer = new THREE.Timer();
-    timer.connect(document);
+    const animTimer = new THREE.Timer();
+    timer = animTimer;
+    animTimer.connect(document);
 
     // Smooth botanical growth scale transition!
     let currentAnimScale = activeStage.scaleMult * 0.92;
 
     const animate = (timestamp?: number) => {
       animationFrameRef.current = requestAnimationFrame(animate);
-      timer.update(timestamp);
-      const elapsedTime = timer.getElapsed();
-      const delta = Math.min(timer.getDelta(), 0.05);
+      animTimer.update(timestamp);
+      const elapsedTime = animTimer.getElapsed();
+      const delta = Math.min(animTimer.getDelta(), 0.05);
 
       // Smooth botanical growth scale transition (no sudden jumps/pops!)
       if (treeRootGroupRef.current) {
@@ -1178,12 +1209,14 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
         });
       }
 
-      renderer.render(scene, camera);
+      if (renderer && scene) {
+        renderer.render(scene, camera);
+      }
     };
 
     animate();
 
-    const handleResize = () => {
+    handleResize = () => {
       if (!mountRef.current || !rendererRef.current || !cameraRef.current) return;
       const newW = mountRef.current.clientWidth || 300;
       const newH = mountRef.current.clientHeight || 340;
@@ -1194,42 +1227,52 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
 
     window.addEventListener('resize', handleResize);
 
-    const resizeObserver = new ResizeObserver(() => {
-      handleResize();
-    });
-    if (mountRef.current) {
-      resizeObserver.observe(mountRef.current);
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+      if (mountRef.current) {
+        resizeObserver.observe(mountRef.current);
+      }
+    }
+    } catch {
+      setWebglFailed(true);
     }
 
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       window.removeEventListener('resize', handleResize);
-      resizeObserver.disconnect();
-      timer.dispose();
+      if (resizeObserver) resizeObserver.disconnect();
+      if (timer) timer.dispose();
 
-      domElem.removeEventListener('mousedown', handlePointerDown);
+      if (domElem) {
+        domElem.removeEventListener('webglcontextlost', handleContextLost);
+        domElem.removeEventListener('mousedown', handlePointerDown);
+        domElem.removeEventListener('touchstart', handlePointerDown);
+      }
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('mouseup', handlePointerUp);
-
-      domElem.removeEventListener('touchstart', handlePointerDown);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('touchend', handlePointerUp);
 
       if (rendererRef.current && rendererRef.current.domElement) {
         rendererRef.current.domElement.remove();
         rendererRef.current.dispose();
+        rendererRef.current = null;
       }
 
-      scene.traverse((obj) => {
-        if ((obj as THREE.Mesh).isMesh) {
-          const mesh = obj as THREE.Mesh;
-          if (mesh.geometry) mesh.geometry.dispose();
-          if (mesh.material) {
-            if (Array.isArray(mesh.material)) mesh.material.forEach((m) => m.dispose());
-            else mesh.material.dispose();
+      if (scene) {
+        scene.traverse((obj) => {
+          if ((obj as THREE.Mesh).isMesh) {
+            const mesh = obj as THREE.Mesh;
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material) {
+              if (Array.isArray(mesh.material)) mesh.material.forEach((m) => m.dispose());
+              else mesh.material.dispose();
+            }
           }
-        }
-      });
+        });
+      }
     };
   }, [selectedSpeciesId, currentStageNumber, activeSpecies, activeStage]);
 
@@ -1617,19 +1660,19 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
       )}
 
       {/* UNIFIED COMPACT 3D FOCUS GARDEN DIORAMA: TIMER IN THE BACKGROUND AROUND VIRTUAL LAND */}
-      <div className="keep-dark-surface relative rounded-3xl bg-gradient-to-b from-[#04070e] via-[#0b101c] to-[#04070e] border border-[var(--border-color)] overflow-hidden shadow-2xl h-[420px] sm:h-[460px] flex flex-col justify-between">
+      <div className="keep-dark-surface relative rounded-3xl bg-gradient-to-b from-[#04070e] via-[#0b101c] to-[#04070e] border border-[var(--border-color)] overflow-hidden shadow-2xl min-h-[470px] h-auto sm:h-[470px] flex flex-col justify-between">
         
         {/* BACKGROUND HORIZONTAL CURVED TIMER ARC AROUND VIRTUAL LAND */}
-        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-start pt-2 sm:pt-4 overflow-hidden select-none">
+        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-start pt-12 sm:pt-4 overflow-hidden select-none">
           {/* Subtle Ambient Radial Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[300px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[480px] h-[240px] sm:h-[300px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Background Digital Countdown & Status Display (Above/Behind virtual land) */}
-          <div className="relative z-0 flex flex-col items-center justify-center text-center mt-1 sm:mt-2">
+          <div className="relative z-0 flex flex-col items-center justify-center text-center mt-1 sm:mt-2 px-3">
             <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-cyan-400 drop-shadow">
               {isDistracted ? '⚠️ DISTRACTION PAUSED' : isRunning ? '⚡ FOCUS SPRINT' : 'READY TO GROW'}
             </span>
-            <div className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] mt-0.5">
+            <div className="text-3xl sm:text-5xl font-black font-mono tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] mt-0.5">
               {formatTime(secondsRemaining)}
             </div>
             <span className="text-[10px] text-cyan-300 font-semibold mt-0.5 drop-shadow">
@@ -1638,7 +1681,7 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
           </div>
 
           {/* Wide Horizontal SVG Arc Wrapping Behind Virtual Land */}
-          <div className="relative w-full max-w-2xl h-56 sm:h-64 mx-auto -mt-6 sm:-mt-8 flex items-center justify-center">
+          <div className="relative w-full max-w-2xl h-48 sm:h-64 mx-auto mt-0 sm:-mt-6 flex items-center justify-center">
             <svg
               viewBox="0 0 600 280"
               className="w-full h-full overflow-visible filter drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]"
@@ -1707,12 +1750,25 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
           title="Click and drag to orbit your 3D miniature virtual land and tree diorama"
         />
 
+        {/* Crisp Botanical Fallback when WebGL is disabled or unavailable on device */}
+        {webglFailed && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none pt-14 pb-20 px-4 text-center">
+            <div className="w-24 h-24 rounded-full bg-emerald-500/15 border border-emerald-400/35 flex items-center justify-center text-4xl shadow-[0_0_28px_rgba(16,185,129,0.25)]">
+              {activeStage.icon}
+            </div>
+            <span className="mt-2 text-[11px] font-bold text-emerald-300">
+              {activeSpecies.icon} {activeStage.shortName} Mode
+            </span>
+            <span className="text-[10px] text-slate-400">2D Garden Fallback Active</span>
+          </div>
+        )}
+
         {/* FOREGROUND UI OVERLAYS */}
-        <div className="relative z-20 pointer-events-none p-3 sm:p-4 flex flex-col justify-between h-full">
+        <div className="relative z-20 pointer-events-none p-3 sm:p-4 flex flex-col justify-between gap-40 sm:gap-0 flex-1 h-full">
           {/* Top Status Bar: Live status & Quick dropdown selectors */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center justify-between gap-1.5 flex-wrap">
             <span
-              className={`pointer-events-auto px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 border shadow-sm ${
+              className={`pointer-events-auto px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 border shadow-sm max-w-full ${
                 isDistracted
                   ? 'bg-rose-950/80 text-rose-300 border-rose-500 animate-pulse'
                   : isRunning
@@ -1721,11 +1777,11 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
               }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   isDistracted ? 'bg-rose-500' : isRunning ? 'bg-emerald-400 animate-ping' : 'bg-slate-400'
                 }`}
               />
-              <span>
+              <span className="truncate">
                 {isDistracted
                   ? 'Leaves Shedding 🍂'
                   : isRunning
@@ -1735,15 +1791,15 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
             </span>
 
             {/* Quick species dropdown on top right */}
-            <div className="pointer-events-auto flex items-center gap-1.5">
-              <div className="relative">
+            <div className="pointer-events-auto flex items-center gap-1.5 max-w-full">
+              <div className="relative max-w-full">
                 <select
                   value={selectedSpeciesId}
                   onChange={(e) => {
                     setSelectedSpeciesId(e.target.value);
                     localStorage.setItem('zenith_tree_species', e.target.value);
                   }}
-                  className="appearance-none pl-2 pr-6 py-1 rounded-lg bg-black/75 border border-white/20 text-[11px] font-bold text-cyan-300 focus:outline-none cursor-pointer"
+                  className="appearance-none max-w-[165px] sm:max-w-none pl-2 pr-6 py-1 rounded-lg bg-black/75 border border-white/20 text-[11px] font-bold text-cyan-300 focus:outline-none cursor-pointer truncate"
                 >
                   {TREE_SPECIES.map((sp) => (
                     <option key={sp.id} value={sp.id} className="bg-slate-900 text-white">
@@ -1759,9 +1815,9 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
           {/* Bottom Floating Control Dock */}
           <div className="pointer-events-auto p-2 sm:p-2.5 rounded-2xl bg-black/80 backdrop-blur-md border border-white/10 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-2">
             {/* Direct Typing Input Block (1 min to 3 hours = 180 min) */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-black/70 border border-white/20 hover:border-cyan-400/50 rounded-xl px-3 py-1.5 focus-within:border-cyan-400 transition-colors shadow-inner">
-                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Duration:</span>
+            <div className="flex items-center justify-center flex-wrap gap-2 w-full sm:w-auto">
+              <div className="flex items-center justify-center flex-wrap gap-1.5 sm:gap-2 bg-black/70 border border-white/20 hover:border-cyan-400/50 rounded-xl px-2.5 sm:px-3 py-1.5 focus-within:border-cyan-400 transition-colors shadow-inner">
+                <span className="text-[10px] sm:text-[11px] text-slate-400 font-bold uppercase tracking-wider">Duration:</span>
                 <input
                   type="number"
                   min={1}
@@ -1770,7 +1826,7 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
                   disabled={isRunning}
                   onChange={(e) => handleInputChange(e.target.value)}
                   onBlur={handleInputBlur}
-                  className="w-14 bg-transparent text-cyan-300 font-mono font-black text-sm text-center focus:outline-none border-b border-cyan-500/40"
+                  className="w-12 sm:w-14 bg-transparent text-cyan-300 font-mono font-black text-sm text-center focus:outline-none border-b border-cyan-500/40"
                   placeholder="25"
                   title="Type focus minutes (1 to 180 mins) - automatically updates"
                 />
@@ -1782,7 +1838,7 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
             </div>
 
             {/* Quick Controls: Play/Pause & Reset */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-center gap-1.5 w-full sm:w-auto">
               {/* Play / Pause button */}
               {isRunning ? (
                 <button
@@ -1819,18 +1875,18 @@ export const FocusTimerView: React.FC<FocusTimerViewProps> = ({
       </div>
 
       {/* COMPACT BOTTOM STATS STRIP: Minimal Space */}
-      <div className="grid grid-cols-3 gap-2 text-center text-xs">
-        <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]">
-          <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block">Focus Points</span>
-          <span className="text-base font-black text-amber-400">{userFocusPoints.toLocaleString()}</span>
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center text-xs">
+        <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] min-w-0">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] block truncate">Focus Points</span>
+          <span className="text-sm sm:text-base font-black text-amber-400 break-words">{userFocusPoints.toLocaleString()}</span>
         </div>
-        <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]">
-          <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block">Trees Cultivated</span>
-          <span className="text-base font-black text-emerald-400">{userTreesGrown} Grown</span>
+        <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] min-w-0">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] block truncate">Trees Grown</span>
+          <span className="text-sm sm:text-base font-black text-emerald-400 break-words">{userTreesGrown} Grown</span>
         </div>
-        <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]">
-          <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block">Total Focus Time</span>
-          <span className="text-base font-black text-cyan-400">{userTotalMinutes} Mins</span>
+        <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] min-w-0">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] block truncate">Focus Time</span>
+          <span className="text-sm sm:text-base font-black text-cyan-400 break-words">{userTotalMinutes} Mins</span>
         </div>
       </div>
     </div>

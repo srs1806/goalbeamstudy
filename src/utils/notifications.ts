@@ -187,15 +187,23 @@ export function dismissMorningNotificationPrompt(): void {
  * Check if the browser supports the Web Notification API
  */
 export function isNotificationSupported(): boolean {
-  return typeof window !== 'undefined' && 'Notification' in window;
+  try {
+    return typeof window !== 'undefined' && 'Notification' in window && typeof Notification !== 'undefined';
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Get current notification permission from the browser.
+ * Get current notification permission safely from the browser.
  */
 export function getNotificationPermission(): NotificationPermission {
-  if (typeof window === 'undefined' || !isNotificationSupported()) return 'granted';
-  return Notification.permission;
+  if (typeof window === 'undefined' || !isNotificationSupported()) return 'default';
+  try {
+    return Notification.permission;
+  } catch {
+    return 'default';
+  }
 }
 
 /**
@@ -203,21 +211,22 @@ export function getNotificationPermission(): NotificationPermission {
  * Also registers the service worker so background & lockscreen notifications work.
  */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (typeof window === 'undefined' || !isNotificationSupported()) return 'granted';
+  if (typeof window === 'undefined' || !isNotificationSupported()) return 'default';
 
   try {
-    if ('serviceWorker' in navigator) {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
     }
 
-    if (Notification.permission === 'default') {
+    const currentPerm = getNotificationPermission();
+    if (currentPerm === 'default' && typeof Notification.requestPermission === 'function') {
       const perm = await Notification.requestPermission();
       return perm;
     }
-    return Notification.permission;
+    return getNotificationPermission();
   } catch (err) {
     console.warn('Notification permission request:', err);
-    return Notification.permission;
+    return getNotificationPermission();
   }
 }
 
@@ -578,10 +587,11 @@ export async function showStudyNotification(
   }
 
   // Ensure permission is granted
-  if (Notification.permission === 'default') {
-    await requestNotificationPermission();
+  let perm = getNotificationPermission();
+  if (perm === 'default') {
+    perm = await requestNotificationPermission();
   }
-  if (Notification.permission !== 'granted') {
+  if (perm !== 'granted') {
     return false;
   }
 
@@ -601,15 +611,14 @@ export async function showStudyNotification(
   };
 
   // 1. Dispatch via Service Worker (Strictly required for Mobile Android notification bar / PWA / Laptop Action Center)
-  if ('serviceWorker' in navigator) {
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     try {
       let reg = await navigator.serviceWorker.getRegistration();
       if (!reg) {
         const swScope = DEPLOY_BASE_PREFIX ? `${DEPLOY_BASE_PREFIX}/` : '/';
         reg = await navigator.serviceWorker.register(getAppAssetUrl('sw.js'), { scope: swScope });
       }
-      if (reg) {
-        // Also post message to service worker
+      if (reg && typeof reg.showNotification === 'function') {
         if (reg.active) {
           reg.active.postMessage({
             type: 'SHOW_DEVICE_NOTIFICATION',
@@ -625,16 +634,25 @@ export async function showStudyNotification(
     }
   }
 
-  // 2. Desktop Window Notification fallback
+  // 2. Desktop Window Notification fallback (omit actions/vibrate/image which throw TypeError in non-SW Notification constructors)
   try {
-    const notification = new Notification(title, baseOptions);
+    const windowOptions: NotificationOptions = {
+      body: baseOptions.body,
+      icon: baseOptions.icon,
+      badge: baseOptions.badge,
+      tag: baseOptions.tag,
+      silent: baseOptions.silent,
+    };
+    const notification = new Notification(title, windowOptions);
     notification.onclick = () => {
-      window.focus();
+      try {
+        window.focus();
+      } catch {}
       notification.close();
     };
     return true;
   } catch (err) {
-    console.warn('Desktop native notification error:', err);
+    console.warn('Native notification fallback skipped:', err);
     return false;
   }
 }

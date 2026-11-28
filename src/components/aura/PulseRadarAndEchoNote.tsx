@@ -248,9 +248,17 @@ export const EchoNoteScribe: React.FC<EchoNoteScribeProps> = ({ onSendToMindDesk
     }
 
     try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        setErrorMsg('Audio recording is unavailable on this browser.');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
-      const mr = new MediaRecorder(stream);
+      const mimeType =
+        ['audio/webm', 'audio/mp4', 'audio/ogg'].find(
+          (t) => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(t)
+        ) || '';
+      const mr = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       mrRef.current = mr;
 
       mr.ondataavailable = (e) => {
@@ -258,8 +266,9 @@ export const EchoNoteScribe: React.FC<EchoNoteScribeProps> = ({ onSendToMindDesk
       };
       mr.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        if (blob.size > 100) sendAudioBlob(blob, 'audio/webm');
+        const resolvedType = mr.mimeType || mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: resolvedType });
+        if (blob.size > 100) sendAudioBlob(blob, resolvedType);
       };
 
       mr.start();

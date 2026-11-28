@@ -435,7 +435,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
   }, [currentStepKey]);
 
   return (
-    <div className="w-full h-full min-h-0 flex flex-col items-center justify-center bg-[var(--bg-main)] relative overflow-hidden">
+    <div className="w-full min-h-full sm:h-full sm:min-h-0 flex flex-col items-center justify-start sm:justify-center bg-[var(--bg-main)] relative overflow-x-clip py-1 sm:py-0">
       {/* Background scattered small floating logos with dynamic random arrangement on each step */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
         {/* Soft background central watermark emblem */}
@@ -471,7 +471,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
         ))}
       </div>
 
-      <div className="w-full max-w-2xl h-full max-h-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl p-3 sm:p-5 transition-all relative z-10 flex flex-col min-h-0 overflow-hidden">
+      <div className="w-full max-w-2xl sm:h-full sm:max-h-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl p-3 sm:p-5 transition-all relative z-10 flex flex-col min-h-0 sm:overflow-hidden">
         {/* Compact Top Logo & CBSE Branding (Zero scroll overhead) */}
         <div className="shrink-0 flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[var(--border-color)]/60">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -521,10 +521,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           </div>
         </div>
 
-        {/* STEP 1: Student Details (Zero whole-screen scroll on mobile & PC) */}
+        {/* STEP 1: Student Details (Scrollable safely on tiny/keyboard mobile viewports) */}
         {phase === 'details' && (
-          <div className="flex-1 min-h-0 flex flex-col justify-between gap-2 sm:gap-3 overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="flex-1 min-h-0 flex flex-col justify-evenly sm:justify-start gap-2.5 sm:gap-3.5 overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col justify-between gap-2.5 sm:gap-3 sm:overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="flex-1 min-h-0 flex flex-col justify-evenly sm:justify-start gap-2.5 sm:gap-3.5 sm:overflow-y-auto">
               <div className="border-b border-[var(--border-color)] pb-2 shrink-0">
                 <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                   <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--accent-primary)] shrink-0" />
@@ -679,10 +679,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           </div>
         )}
 
-        {/* STEP 2: 1st Paper Target Exam Date (Zero whole-screen scroll) */}
+        {/* STEP 2: 1st Paper Target Exam Date */}
         {phase === 'date' && (
-          <div className="flex-1 min-h-0 flex flex-col justify-between gap-2 sm:gap-3 overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="flex-1 min-h-0 flex flex-col justify-evenly sm:justify-start gap-2.5 sm:gap-3.5 overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col justify-between gap-2.5 sm:gap-3 sm:overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="flex-1 min-h-0 flex flex-col justify-evenly sm:justify-start gap-2.5 sm:gap-3.5 sm:overflow-y-auto">
               <div className="border-b border-[var(--border-color)] pb-2 shrink-0">
                 <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                   <span className="inline-flex">
@@ -874,7 +874,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                     </div>
 
                     {/* Native Device Picker Option */}
-                    <div className="bg-[var(--bg-elevated)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between gap-2">
+                    <div className="bg-[var(--bg-elevated)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between flex-wrap gap-2">
                       <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-amber-400" />
                         <span>Device Native Calendar:</span>
@@ -888,7 +888,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                             setShowCalendarModal(false);
                           }
                         }}
-                        className="px-2 py-1 rounded-lg bg-[var(--bg-card)] border border-amber-500/40 text-amber-300 text-xs font-mono font-bold cursor-pointer"
+                        className="px-2 py-1 rounded-lg bg-[var(--bg-card)] border border-amber-500/40 text-amber-300 text-xs font-mono font-bold cursor-pointer max-w-full"
                       />
                     </div>
 
@@ -979,9 +979,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           </div>
         )}
 
-        {/* STEP 3: SELECT ENROLLED SUBJECTS + CHAPTER CHECKBOX MODAL (Only list scrolls internally) */}
+        {/* STEP 3: SELECT ENROLLED SUBJECTS + CHAPTER CHECKBOX MODAL */}
         {phase === 'subjects' && (
-          <div className="flex-1 min-h-0 flex flex-col gap-2 sm:gap-2.5 overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="flex-1 min-h-0 flex flex-col gap-2 sm:gap-2.5 sm:overflow-hidden animate-in fade-in zoom-in-95">
             <div className="border-b border-[var(--border-color)] pb-2 shrink-0">
               <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--accent-primary)] shrink-0" />
@@ -1098,7 +1098,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                 </span>
               </div>
 
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
+              <div className="flex-1 min-h-[210px] sm:min-h-0 max-h-[50dvh] sm:max-h-none overflow-y-auto space-y-2 pr-1">
                 {CLASS_10_SUBJECTS.filter((sub) => {
                   const codeNum = Number(sub.code);
                   const isSkill = codeNum >= 400;
@@ -1334,9 +1334,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           </div>
         )}
 
-        {/* STEP 4: Syllabus Selection (Zero whole-screen scroll; only chapter list scrolls) */}
+        {/* STEP 4: Syllabus Selection */}
         {phase === 'syllabus' && (
-          <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="flex-1 min-h-0 flex flex-col gap-2 sm:overflow-hidden animate-in fade-in zoom-in-95">
             <div className="border-b border-[var(--border-color)] pb-2 shrink-0">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-sm sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2 min-w-0 truncate">
@@ -1438,7 +1438,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
             </div>
 
             {/* Strictly Internally Scrollable Chapters Checkboxes */}
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 min-h-[210px] sm:min-h-0 max-h-[50dvh] sm:max-h-none overflow-y-auto space-y-2 pr-1">
               {currentSyllabusSubject.groups.map((group) => {
                 const filteredChapters = group.chapters.filter((ch) => {
                   if (!syllabusSearchQuery.trim()) return true;
@@ -1540,9 +1540,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           </div>
         )}
 
-        {/* STEP 5: Select Study References & Milestones (Zero whole-screen scroll) */}
+        {/* STEP 5: Select Study References & Milestones */}
         {phase === 'stages' && (
-          <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="flex-1 min-h-0 flex flex-col gap-2 sm:overflow-hidden animate-in fade-in zoom-in-95">
             <div className="border-b border-[var(--border-color)] pb-2 shrink-0">
               <div className="flex items-center justify-between flex-wrap gap-1.5">
                 <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
@@ -1716,7 +1716,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
             )}
 
             {/* Strictly Internally Scrollable List of Catalog & Custom Stages */}
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 min-h-[210px] sm:min-h-0 max-h-[50dvh] sm:max-h-none overflow-y-auto space-y-2 pr-1">
               {[...CATALOG_STAGES_OPTIONS, ...customStagesList].filter((st, index, self) => {
                 if (self.findIndex((s) => s.key === st.key) !== index) return false;
                 if (!stagesSearchQuery.trim()) return true;
@@ -1838,9 +1838,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           </div>
         )}
 
-        {/* STEP 6: Record Completed Work (Zero whole-screen scroll; only chapter list scrolls) */}
+        {/* STEP 6: Record Completed Work */}
         {phase === 'finished' && (
-          <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="flex-1 min-h-0 flex flex-col gap-2 sm:overflow-hidden animate-in fade-in zoom-in-95">
             <div className="border-b border-[var(--border-color)] pb-2 shrink-0">
               <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
@@ -1851,7 +1851,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
               </p>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pr-1">
+            <div className="flex-1 min-h-[210px] sm:min-h-0 max-h-[50dvh] sm:max-h-none overflow-y-auto space-y-2.5 pr-1">
               {enrolledSubjects
                 .filter((sub) => finishedSubjectFilter === 'all' || sub.id === finishedSubjectFilter)
                 .map((sub) => {

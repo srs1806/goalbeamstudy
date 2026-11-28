@@ -447,14 +447,20 @@ export const ManualVideoTour: React.FC<ManualVideoTourProps> = ({
   // Audio Recording with gemini-3.5-transcribe
   const handleStartAudioRecording = async () => {
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setAiError('Microphone not supported on this browser.');
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        setAiError('Microphone recording is not supported on this browser.');
         return;
       }
       setAiError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream);
+      const mimeType =
+        ['audio/webm', 'audio/mp4', 'audio/ogg'].find(
+          (t) => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(t)
+        ) || '';
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (e) => {
@@ -463,7 +469,8 @@ export const ManualVideoTour: React.FC<ManualVideoTourProps> = ({
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const resolvedType = mediaRecorder.mimeType || mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: resolvedType });
         if (audioBlob.size < 200) return;
 
         setAiIsLoading(true);
@@ -474,7 +481,7 @@ export const ManualVideoTour: React.FC<ManualVideoTourProps> = ({
             const res = await fetch('/api/transcribe-audio', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ audioBase64: base64Audio, mimeType: 'audio/webm' }),
+              body: JSON.stringify({ audioBase64: base64Audio, mimeType: resolvedType }),
             });
             const data = await res.json();
             if (data.success && data.transcript) {

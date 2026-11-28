@@ -2,11 +2,16 @@
  * Soft startup chime for website launch animation.
  * Emits a gentle, futuristic, soothing acoustic ping (not harsh or loud).
  */
+let sharedStartupAudioCtx: AudioContext | null = null;
+
 export const playSoftStartupChime = () => {
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
+    if (!sharedStartupAudioCtx || sharedStartupAudioCtx.state === 'closed') {
+      sharedStartupAudioCtx = new AudioContextClass();
+    }
+    const ctx = sharedStartupAudioCtx;
 
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});

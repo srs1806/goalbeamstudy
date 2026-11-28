@@ -449,11 +449,14 @@ export function attachScrollChoreography(scrollRoot: HTMLElement, screenKey: str
       const state = (el.getAttribute('data-scroll-state') as ScrollRevealState) || 'visible';
 
       const enterPad = Math.min(24, Math.max(10, elHeight * 0.22));
+      const isTallMobileCard = elHeight > visibleHeight * 0.55;
       // Trigger bottom exit smoothly while lower cards cross the bottom horizon gate above BottomNav
-      const exitInsideBand = Math.min(
-        104,
-        Math.max(26, Math.min(elHeight * 0.42, Math.max(26, elHeight * 0.64)))
-      );
+      const exitInsideBand = isTallMobileCard
+        ? 12
+        : Math.min(
+            104,
+            Math.max(26, Math.min(elHeight * 0.42, Math.max(26, elHeight * 0.64)))
+          );
 
       // Strict asymmetric rules:
       // 1) Scrolling DOWN: ONLY entrance effects (exit-bottom -> visible). Elements above NEVER exit!
@@ -462,12 +465,13 @@ export function attachScrollChoreography(scrollRoot: HTMLElement, screenKey: str
         const isSolidlyAboveOrInside = visTop < visibleHeight - exitInsideBand - 16;
         if (
           isSolidlyAboveOrInside ||
-          ((!scrollingUp || initialFlush) && visTop <= visibleHeight - enterPad)
+          ((!scrollingUp || initialFlush) && visTop <= visibleHeight - enterPad) ||
+          (isTallMobileCard && visTop <= visibleHeight - 24)
         ) {
           newlyEntering.push(el);
         }
       } else if (state === 'visible') {
-        if (!initialFlush && scrollingUp && visTop >= visibleHeight - exitInsideBand) {
+        if (!initialFlush && scrollingUp && !isTallMobileCard && visTop >= visibleHeight - exitInsideBand) {
           newlyExitingBottom.push(el);
         } else if (visTop >= visibleHeight + 24 && scrollingUp) {
           newlyExitingBottom.push(el);

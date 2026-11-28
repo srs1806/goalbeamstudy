@@ -221,35 +221,47 @@ export const SceneReelStudio: React.FC = () => {
   }, [storyboard, aspect, isPlaying]);
 
   const handleRecordWebm = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || typeof MediaRecorder === 'undefined') return;
+    const canvas = canvasRef.current as (HTMLCanvasElement & { captureStream?: (fps?: number) => MediaStream }) | null;
+    if (!canvas || typeof MediaRecorder === 'undefined' || typeof canvas.captureStream !== 'function') {
+      return;
+    }
     setIsExporting(true);
     frameRef.current = 0;
     setIsPlaying(true);
 
-    const stream = canvas.captureStream(30);
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-    const chunks: BlobPart[] = [];
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunks.push(e.data);
-    };
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const topicSlug = buildCleanFilenameSlug(prompt, 'cbse-concept-reel');
-      const ratioTag = aspect === '16:9' ? 'landscape' : 'portrait';
-      a.download = `aura-motion-reel-${topicSlug}-${ratioTag}.webm`;
-      a.click();
-      URL.revokeObjectURL(url);
-      setIsExporting(false);
-    };
+    try {
+      const stream = canvas.captureStream(30);
+      const supportedType = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4'].find(
+        (t) => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(t)
+      );
+      const recorder = supportedType
+        ? new MediaRecorder(stream, { mimeType: supportedType })
+        : new MediaRecorder(stream);
+      const ext = supportedType?.includes('mp4') ? 'mp4' : 'webm';
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: supportedType || 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const topicSlug = buildCleanFilenameSlug(prompt, 'cbse-concept-reel');
+        const ratioTag = aspect === '16:9' ? 'landscape' : 'portrait';
+        a.download = `aura-motion-reel-${topicSlug}-${ratioTag}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsExporting(false);
+      };
 
-    recorder.start();
-    setTimeout(() => {
-      if (recorder.state !== 'inactive') recorder.stop();
-    }, 6500);
+      recorder.start();
+      setTimeout(() => {
+        if (recorder.state !== 'inactive') recorder.stop();
+      }, 6500);
+    } catch {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -313,11 +325,11 @@ export const SceneReelStudio: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-slate-950 border border-[var(--border-color)] p-3 flex items-center justify-center">
+      <div className="rounded-2xl bg-slate-950 border border-[var(--border-color)] p-3 flex items-center justify-center overflow-hidden">
         <canvas
           ref={canvasRef}
-          className={`rounded-xl shadow-2xl ${
-            aspect === '16:9' ? 'w-full max-w-3xl aspect-video' : 'h-[420px] aspect-[9/16]'
+          className={`rounded-xl shadow-2xl max-w-full object-contain ${
+            aspect === '16:9' ? 'w-full max-w-3xl aspect-video' : 'h-[360px] sm:h-[420px] w-auto aspect-[9/16]'
           }`}
         />
       </div>
@@ -435,35 +447,47 @@ export const KinetiPicStudio: React.FC = () => {
   }, [imageSrc, aspect, motionPreset, overlayText, isPlaying]);
 
   const handleExportVideo = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !imageSrc || typeof MediaRecorder === 'undefined') return;
+    const canvas = canvasRef.current as (HTMLCanvasElement & { captureStream?: (fps?: number) => MediaStream }) | null;
+    if (!canvas || !imageSrc || typeof MediaRecorder === 'undefined' || typeof canvas.captureStream !== 'function') {
+      return;
+    }
     setIsExporting(true);
     tickRef.current = 0;
     setIsPlaying(true);
 
-    const stream = canvas.captureStream(30);
-    const rec = new MediaRecorder(stream, { mimeType: 'video/webm' });
-    const chunks: BlobPart[] = [];
-    rec.ondataavailable = (e) => {
-      if (e.data.size > 0) chunks.push(e.data);
-    };
-    rec.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const captionSlug = buildCleanFilenameSlug(overlayText, 'study-visual');
-      const ratioTag = aspect === '16:9' ? 'landscape' : 'portrait';
-      a.download = `aura-visual-explainer-${captionSlug}-${ratioTag}.webm`;
-      a.click();
-      URL.revokeObjectURL(url);
-      setIsExporting(false);
-    };
+    try {
+      const stream = canvas.captureStream(30);
+      const supportedType = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4'].find(
+        (t) => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(t)
+      );
+      const rec = supportedType
+        ? new MediaRecorder(stream, { mimeType: supportedType })
+        : new MediaRecorder(stream);
+      const ext = supportedType?.includes('mp4') ? 'mp4' : 'webm';
+      const chunks: BlobPart[] = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      rec.onstop = () => {
+        const blob = new Blob(chunks, { type: supportedType || 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const captionSlug = buildCleanFilenameSlug(overlayText, 'study-visual');
+        const ratioTag = aspect === '16:9' ? 'landscape' : 'portrait';
+        a.download = `aura-visual-explainer-${captionSlug}-${ratioTag}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsExporting(false);
+      };
 
-    rec.start();
-    setTimeout(() => {
-      if (rec.state !== 'inactive') rec.stop();
-    }, 6000);
+      rec.start();
+      setTimeout(() => {
+        if (rec.state !== 'inactive') rec.stop();
+      }, 6000);
+    } catch {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -561,12 +585,12 @@ export const KinetiPicStudio: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-slate-950 border border-[var(--border-color)] p-3 flex items-center justify-center min-h-[320px]">
+      <div className="rounded-2xl bg-slate-950 border border-[var(--border-color)] p-3 flex items-center justify-center min-h-[320px] overflow-hidden">
         {imageSrc ? (
           <canvas
             ref={canvasRef}
-            className={`rounded-xl shadow-2xl ${
-              aspect === '16:9' ? 'w-full max-w-3xl aspect-video' : 'h-[400px] aspect-[9/16]'
+            className={`rounded-xl shadow-2xl max-w-full object-contain ${
+              aspect === '16:9' ? 'w-full max-w-3xl aspect-video' : 'h-[360px] sm:h-[400px] w-auto aspect-[9/16]'
             }`}
           />
         ) : (

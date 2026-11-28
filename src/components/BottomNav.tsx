@@ -44,9 +44,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       aria-label="Primary Mobile Navigation"
       className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-[var(--border-color)] px-2 py-1 pb-[max(0.3rem,env(safe-area-inset-bottom))] transition-colors select-none shadow-2xl"
     >
-      <div className="max-w-md mx-auto flex items-center justify-between relative px-1 h-13 sm:h-14">
+      <div className="max-w-md mx-auto flex items-center justify-between relative px-0.5 sm:px-1 min-h-[56px] sm:min-h-[60px]">
         {/* Left 2 Items Symmetrically Distributed */}
-        <div className="flex items-center justify-around flex-1 gap-1 min-w-0">
+        <div className="flex items-center justify-around flex-1 gap-0.5 sm:gap-1 min-w-0">
           {leftItems.map((item) => {
             const isActive = currentScreen === item.key;
             const cfg = SCREEN_SEO_MAP[item.key];
@@ -56,34 +56,34 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 href={cfg.path}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={(e) => handleLinkClick(e, item.key)}
-                className={`relative flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-colors cursor-pointer flex-1 min-w-0 ${
+                className={`relative flex flex-col items-center justify-center py-1.5 px-1 sm:px-2 rounded-xl transition-colors cursor-pointer flex-1 min-w-0 ${
                   isActive
                     ? 'text-cyan-400 font-black'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
                 title={cfg.pageName}
               >
+                {isActive && (
+                  <span className="absolute top-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_4px_#38bdf8]" />
+                )}
                 <div className={`relative p-0.5 shrink-0 ${isActive ? 'text-cyan-400' : ''}`}>
                   {item.icon}
                 </div>
-                <span className="text-[10px] sm:text-xs mt-0.5 tracking-tight font-extrabold break-words text-center leading-tight max-w-full">
+                <span className="text-[10px] sm:text-xs mt-0.5 tracking-tight font-extrabold truncate text-center leading-tight max-w-full">
                   {item.label}
                 </span>
-                {isActive && (
-                  <span className="absolute -top-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_4px_#38bdf8]" />
-                )}
               </a>
             );
           })}
         </div>
 
         {/* Central Anchor: Home Button */}
-        <div className="relative -top-2 flex flex-col items-center justify-center px-2 shrink-0">
+        <div className="relative -top-1.5 flex flex-col items-center justify-center px-1.5 sm:px-2 shrink-0">
           <a
             href={SCREEN_SEO_MAP.dashboard.path}
             aria-current={isHomeActive ? 'page' : undefined}
             onClick={(e) => handleLinkClick(e, 'dashboard')}
-            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex flex-col items-center justify-center transition-colors cursor-pointer nav-3d-button ${
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex flex-col items-center justify-center transition-colors cursor-pointer nav-3d-button ${
               isHomeActive
                 ? 'nav-3d-home-active text-white shadow-lg shadow-cyan-500/25'
                 : 'nav-3d-home-inactive text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -94,13 +94,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <LayoutDashboard className="w-5 h-5" />
             </div>
           </a>
-          <span className={`text-[9px] sm:text-[10px] font-black tracking-tight mt-0.5 leading-none ${isHomeActive ? 'text-cyan-400 font-black' : 'text-[var(--text-secondary)]'}`}>
+          <span className={`text-[9px] sm:text-[10px] font-black tracking-tight mt-0.5 leading-none whitespace-nowrap ${isHomeActive ? 'text-cyan-400 font-black' : 'text-[var(--text-secondary)]'}`}>
             {t('nav.home', 'Home')}
           </span>
         </div>
 
         {/* Right 2 Items Symmetrically Distributed */}
-        <div className="flex items-center justify-around flex-1 gap-1 min-w-0">
+        <div className="flex items-center justify-around flex-1 gap-0.5 sm:gap-1 min-w-0">
           {rightItems.map((item) => {
             const isActive = currentScreen === item.key;
             const cfg = SCREEN_SEO_MAP[item.key];
@@ -110,22 +110,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 href={cfg.path}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={(e) => handleLinkClick(e, item.key)}
-                className={`relative flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-colors cursor-pointer flex-1 min-w-0 ${
+                className={`relative flex flex-col items-center justify-center py-1.5 px-1 sm:px-2 rounded-xl transition-colors cursor-pointer flex-1 min-w-0 ${
                   isActive
                     ? 'text-cyan-400 font-black'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
                 title={cfg.pageName}
               >
+                {isActive && (
+                  <span className="absolute top-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_4px_#38bdf8]" />
+                )}
                 <div className={`relative p-0.5 shrink-0 ${isActive ? 'text-cyan-400' : ''}`}>
                   {item.icon}
                 </div>
-                <span className="text-[10px] sm:text-xs mt-0.5 tracking-tight font-extrabold break-words text-center leading-tight max-w-full">
+                <span className="text-[10px] sm:text-xs mt-0.5 tracking-tight font-extrabold truncate text-center leading-tight max-w-full">
                   {item.label}
                 </span>
-                {isActive && (
-                  <span className="absolute -top-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_4px_#38bdf8]" />
-                )}
               </a>
             );
           })}

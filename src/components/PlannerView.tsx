@@ -473,7 +473,7 @@ export const PlannerView: React.FC<PlannerViewProps> = ({
               return (
                 <div
                   key={sub.id}
-                  className="rounded-xl bg-[var(--bg-elevated)]/70 border border-[var(--border-color)] p-3 flex items-center justify-between gap-3"
+                  className="rounded-xl bg-[var(--bg-elevated)]/70 border border-[var(--border-color)] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-[var(--text-primary)] truncate">
@@ -490,7 +490,7 @@ export const PlannerView: React.FC<PlannerViewProps> = ({
                     disabled={isGuestPreview}
                     onChange={(e) => handleExamDateChange(sub.id, e.target.value)}
                     aria-label={`Exam date for ${sub.name}`}
-                    className="px-2.5 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-mono text-[var(--text-primary)] disabled:opacity-60 shrink-0"
+                    className="w-full sm:w-auto px-2.5 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-mono text-[var(--text-primary)] disabled:opacity-60 shrink-0"
                   />
                 </div>
               );

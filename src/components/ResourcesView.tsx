@@ -890,7 +890,7 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
         </div>
 
         {/* Stepper Progress Bar */}
-        <div className="grid grid-cols-4 gap-1 sm:gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
           {[
             { stepNo: 1, label: '1. Subject', val: getSubjectLabel(selectedSubject) },
             { stepNo: 2, label: '2. Requirement', val: getRequirementObj(selectedRequirement).shortLabel },
@@ -1006,25 +1006,22 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
 
           {/* Compact 2-Column Responsive Grid (Only Enrolled Subjects with Available Resources) */}
           {availableEnrolledSubjects.length === 0 ? (
-            <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-cyan-500/30 space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="text-xs font-extrabold text-cyan-300">
-                  Live Google Search PDF Finder Ready
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedSubject('all');
-                    setSelectedRequirement('all');
-                    setSelectedAcademicYear('all');
-                    setWizardStep(2);
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-200 font-black text-xs cursor-pointer"
-                >
-                  Browse All Verified Subjects →
-                </button>
-              </div>
-              <LiveResourceSearch language={language} onRecordStudyActivity={onRecordStudyActivity} />
+            <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-cyan-500/30 flex items-center justify-between flex-wrap gap-2">
+              <span className="text-xs font-extrabold text-cyan-300">
+                No matching enrolled subject filters — reset to browse all verified resources.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSubject('all');
+                  setSelectedRequirement('all');
+                  setSelectedAcademicYear('all');
+                  setWizardStep(2);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-200 font-black text-xs cursor-pointer"
+              >
+                Browse All Verified Subjects →
+              </button>
             </div>
           ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1827,250 +1824,450 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-b border-[var(--border-color)] text-[11px] uppercase tracking-wider font-extrabold">
-                    <th className="py-2.5 px-3 whitespace-nowrap">Subject &amp; Code</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap min-w-[200px]">Document / Session</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap text-center">Direct Resource / PDF</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap text-center">Answers / Marking Scheme</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap text-center">Official Portal / Source</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
-                  {filteredResources.map((res: ResourceItem) => {
-                    const subColor = getSubjectColor(res.subjectId);
-                    const officialPortal = res.officialPortalUrl || 'https://cbseacademic.nic.in/SQP_CLASSX_2026-27.html';
+            <>
+              {/* Mobile Stacked Resource Cards (Zero Horizontal Scroll) */}
+              <div className="md:hidden space-y-2.5">
+                {filteredResources.map((res: ResourceItem) => {
+                  const subColor = getSubjectColor(res.subjectId);
+                  const officialPortal =
+                    res.officialPortalUrl || 'https://cbseacademic.nic.in/SQP_CLASSX_2026-27.html';
+                  const primarySubLinks = res.subLinks?.filter((sl) => sl.type !== 'ms') || [];
+                  const msSubLinks = res.subLinks?.filter((sl) => sl.type === 'ms') || [];
 
-                    // Sublinks if present (SQP, MS, PDFs, Mock Tests, Portal links)
-                    const primarySubLinks = res.subLinks?.filter((sl) => sl.type !== 'ms') || [];
-                    const msSubLinks = res.subLinks?.filter((sl) => sl.type === 'ms') || [];
+                  const primaryActionLabel =
+                    res.category === 'digraj_singh_rajput'
+                      ? 'Open digrajsinghrajput.com ↗'
+                      : res.category === 'revision_notes'
+                      ? 'Open Notes ↗'
+                      : res.category === 'extra_qa'
+                      ? 'Open Extra Q&A ↗'
+                      : res.category === 'mcq_tests'
+                      ? res.title.toLowerCase().includes('mock test') || res.url.includes('mock-test')
+                        ? 'Start Free Test ↗'
+                        : 'Practice MCQs ↗'
+                      : res.category === 'cbse_pyq'
+                      ? 'Open PYQ ↗'
+                      : res.category === 'ncert_books'
+                      ? 'Open NCERT PDF ↗'
+                      : res.category === 'ncert_solutions' || res.category === 'reference_books'
+                      ? 'Open Solutions ↗'
+                      : res.category === 'cbse_topper_answers'
+                      ? 'View Topper Copies ↗'
+                      : res.category === 'cbse_sqp'
+                      ? 'Open Official SQP ↗'
+                      : 'Open Resource ↗';
 
-                    const primaryActionLabel =
-                      res.category === 'digraj_singh_rajput'
-                        ? 'Open digrajsinghrajput.com ↗'
-                        : res.category === 'revision_notes'
-                        ? 'Open Notes ↗'
-                        : res.category === 'extra_qa'
-                        ? 'Open Extra Q&A ↗'
-                        : res.category === 'mcq_tests'
-                        ? res.title.toLowerCase().includes('mock test') || res.url.includes('mock-test')
-                          ? 'Start Free Test ↗'
-                          : 'Practice MCQs ↗'
-                        : res.category === 'cbse_pyq'
-                        ? 'Open PYQ ↗'
-                        : res.category === 'ncert_books'
-                        ? 'Open NCERT PDF ↗'
-                        : res.category === 'ncert_solutions' || res.category === 'reference_books'
-                        ? 'Open Solutions ↗'
-                        : res.category === 'cbse_topper_answers'
-                        ? 'View Topper Copies ↗'
-                        : res.category === 'cbse_sqp'
-                        ? 'Open Official SQP ↗'
-                        : 'Open Resource ↗';
+                  return (
+                    <div
+                      key={`mob-${res.id}`}
+                      className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-3 space-y-2.5 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                          <span
+                            className="w-1.5 h-4 rounded-full shrink-0"
+                            style={{ backgroundColor: subColor }}
+                          />
+                          <span
+                            className="sub-accent-pill border px-1.5 py-0.5 rounded text-[10px] font-black uppercase"
+                            style={{ '--sub-hex': subColor } as React.CSSProperties}
+                          >
+                            {getSubjectLabel(res.subjectId)}
+                          </span>
+                          <span className="text-[10px] text-[var(--text-muted)]">
+                            {res.year || res.updatedDateLabel || 'CBSE Official'}
+                          </span>
+                          <span className="text-[10px] text-cyan-400 font-semibold">
+                            · {res.badge}
+                          </span>
+                        </div>
+                      </div>
 
-                    return (
-                      <tr
-                        key={res.id}
-                        className="hover:bg-cyan-500/[0.03] transition-colors"
-                      >
-                        {/* 1. Subject & Code */}
-                        <td className="py-2.5 px-3 whitespace-nowrap align-middle">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2 h-6 rounded-full shrink-0"
-                              style={{ backgroundColor: subColor }}
-                            />
-                            <div>
-                              <span
-                                className="sub-accent-pill border px-1.5 py-0.5 rounded text-[10px] font-black uppercase block w-fit"
-                                style={{ '--sub-hex': subColor } as React.CSSProperties}
+                      <div className="space-y-1">
+                        <div className="text-xs font-bold text-[var(--text-primary)] leading-snug break-words">
+                          {res.title}
+                        </div>
+                        {res.description && (
+                          <div className="text-[11px] text-[var(--text-muted)] leading-snug line-clamp-2">
+                            {res.description}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-[var(--border-color)]/60">
+                        {res.studySheetId || res.opensMapChecklist ? (
+                          <>
+                            {res.studySheetId && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleOpenStudySheet(
+                                    res.studySheetId!,
+                                    res.id.includes('pyq') || res.id.includes('extra_qa')
+                                      ? 'sureshot'
+                                      : 'notes'
+                                  )
+                                }
+                                className="inline-flex px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-[11px] items-center gap-1 shadow-sm cursor-pointer"
                               >
-                                {getSubjectLabel(res.subjectId)}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* 2. Document & Session */}
-                        <td className="py-2.5 px-3 align-middle">
-                          <div className="space-y-0.5">
-                            <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 flex-wrap">
-                              <span>{res.year || res.updatedDateLabel || 'CBSE Official'}</span>
-                              <span aria-hidden="true">·</span>
-                              <span className="text-cyan-400 font-medium">{res.badge}</span>
-                              {res.sstSection && (
-                                <>
-                                  <span aria-hidden="true">·</span>
-                                  <span className="capitalize">{res.sstSection.replace('_', ' ')}</span>
-                                </>
-                              )}
-                            </div>
-                            <div className="text-xs font-bold text-[var(--text-primary)] leading-tight">
-                              {res.title}
-                            </div>
-                            {res.description && (
-                              <div className="text-[11px] text-[var(--text-muted)] line-clamp-2 max-w-md">
-                                {res.description}
-                              </div>
+                                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                                <span>
+                                  {res.id.includes('pyq') || res.id.includes('extra_qa')
+                                    ? 'Sure-Shot Q&As'
+                                    : 'Notes & Mind Map'}
+                                </span>
+                              </button>
                             )}
-                          </div>
-                        </td>
-
-                        {/* 3. Direct Resource / PDF / Interactive Study Sheet */}
-                        <td className="py-2.5 px-3 whitespace-nowrap text-center align-middle">
-                          {res.studySheetId || res.opensMapChecklist ? (
-                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                              {res.studySheetId && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleOpenStudySheet(
-                                      res.studySheetId!,
-                                      res.id.includes('pyq') || res.id.includes('extra_qa')
-                                        ? 'sureshot'
-                                        : 'notes'
-                                    )
-                                  }
-                                  className="inline-flex px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs items-center gap-1.5 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
-                                >
-                                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                                  <span>
-                                    {res.id.includes('pyq') || res.id.includes('extra_qa')
-                                      ? 'Read Sure-Shot Q&As'
-                                      : 'Read Notes & Mind Map'}
-                                  </span>
-                                </button>
-                              )}
-                              {res.opensMapChecklist && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setShowMapChecklistPanel(true);
-                                    const el = document.getElementById('sst-map-checklist-panel');
-                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                  }}
-                                  className="inline-flex px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs items-center gap-1.5 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
-                                >
-                                  <MapPin className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Open Map Checklist</span>
-                                </button>
-                              )}
-                            </div>
-                          ) : primarySubLinks.length > 0 ? (
-                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                              {primarySubLinks.map((sl, idx) => (
-                                <a
-                                  key={idx}
-                                  href={sl.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => onRecordStudyActivity?.()}
-                                  className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs flex items-center gap-1 shadow-sm transition-all"
-                                  title={`Open ${sl.label} directly in new tab`}
-                                >
-                                  <FileText className="w-3.5 h-3.5 shrink-0" />
-                                  <span>{sl.label.replace(' (PDF)', '')} ↗</span>
-                                </a>
-                              ))}
-                            </div>
-                          ) : (
+                            {res.opensMapChecklist && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowMapChecklistPanel(true);
+                                  const el = document.getElementById('sst-map-checklist-panel');
+                                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                }}
+                                className="inline-flex px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px] items-center gap-1 shadow-sm cursor-pointer"
+                              >
+                                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                <span>Map Checklist</span>
+                              </button>
+                            )}
+                          </>
+                        ) : primarySubLinks.length > 0 ? (
+                          primarySubLinks.map((sl, idx) => (
                             <a
-                              href={res.url}
+                              key={idx}
+                              href={sl.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={() => onRecordStudyActivity?.()}
-                              className="inline-flex px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs items-center gap-1 shadow-sm transition-all"
-                              title={`Open ${res.title} in new tab`}
+                              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-[11px] inline-flex items-center gap-1 shadow-sm"
                             >
                               <FileText className="w-3.5 h-3.5 shrink-0" />
-                              <span>{primaryActionLabel}</span>
+                              <span>{sl.label.replace(' (PDF)', '')} ↗</span>
                             </a>
-                          )}
-                        </td>
-
-                        {/* 4. Answers / Marking Scheme (MS) / Mind Map & Video Companion */}
-                        <td className="py-2.5 px-3 whitespace-nowrap text-center align-middle">
-                          {res.studySheetId ? (
-                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenStudySheet(res.studySheetId!, 'mindmap')}
-                                className="inline-flex px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-cyan-400/50 text-[var(--text-primary)] font-bold text-xs items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0"
-                              >
-                                <GitBranch className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                                <span>Mind Map</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenStudySheet(res.studySheetId!, 'video')}
-                                className="inline-flex px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-emerald-400/50 text-emerald-400 font-bold text-xs items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0"
-                              >
-                                <PlayCircle className="w-3.5 h-3.5 shrink-0" />
-                                <span>Video Guide</span>
-                              </button>
-                            </div>
-                          ) : msSubLinks.length > 0 ? (
-                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                              {msSubLinks.map((sl, idx) => (
-                                <a
-                                  key={idx}
-                                  href={sl.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => onRecordStudyActivity?.()}
-                                  className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs flex items-center gap-1 transition-all"
-                                  title={`Open ${sl.label} in new tab`}
-                                >
-                                  <FileCheck2 className="w-3.5 h-3.5 shrink-0" />
-                                  <span>{sl.label.replace(' (PDF)', '')} ↗</span>
-                                </a>
-                              ))}
-                            </div>
-                          ) : res.markingSchemeUrl ? (
-                            <a
-                              href={res.markingSchemeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => onRecordStudyActivity?.()}
-                              className="inline-flex px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs items-center gap-1 transition-all"
-                              title="Open solutions or marking scheme in new tab"
-                            >
-                              <FileCheck2 className="w-3.5 h-3.5 shrink-0" />
-                              <span>{res.category === 'revision_notes' ? 'Alt Notes Portal ↗' : res.category === 'mcq_tests' ? 'Chapter MCQs ↗' : 'Marking Scheme ↗'}</span>
-                            </a>
-                          ) : (
-                            <span className="text-[11px] text-[var(--text-muted)] italic">
-                              Answers Included
-                            </span>
-                          )}
-                        </td>
-
-                        {/* 5. Official Portal / Source */}
-                        <td className="py-2.5 px-3 whitespace-nowrap text-center align-middle">
+                          ))
+                        ) : (
                           <a
-                            href={officialPortal}
+                            href={res.url}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => onRecordStudyActivity?.()}
-                            className="inline-flex px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-cyan-400/50 text-[var(--text-secondary)] hover:text-cyan-300 font-bold text-xs items-center gap-1 transition-all"
-                            title={`Open ${res.source} in new tab`}
+                            className="inline-flex px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-[11px] items-center gap-1 shadow-sm"
                           >
-                            <ExternalLink className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                            <span>
-                              {res.category === 'digraj_singh_rajput'
-                                ? 'digrajsinghrajput.com ↗'
-                                : 'Official Portal ↗'}
-                            </span>
+                            <FileText className="w-3.5 h-3.5 shrink-0" />
+                            <span>{primaryActionLabel}</span>
                           </a>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        )}
+
+                        {res.studySheetId ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenStudySheet(res.studySheetId!, 'mindmap')}
+                              className="inline-flex px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] text-[var(--text-primary)] font-bold text-[11px] items-center gap-1 cursor-pointer"
+                            >
+                              <GitBranch className="w-3 h-3 text-cyan-400 shrink-0" />
+                              <span>Mind Map</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenStudySheet(res.studySheetId!, 'video')}
+                              className="inline-flex px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] text-emerald-400 font-bold text-[11px] items-center gap-1 cursor-pointer"
+                            >
+                              <PlayCircle className="w-3 h-3 shrink-0" />
+                              <span>Video</span>
+                            </button>
+                          </>
+                        ) : msSubLinks.length > 0 ? (
+                          msSubLinks.map((sl, idx) => (
+                            <a
+                              key={idx}
+                              href={sl.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => onRecordStudyActivity?.()}
+                              className="px-2 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-extrabold text-[11px] inline-flex items-center gap-1"
+                            >
+                              <FileCheck2 className="w-3 h-3 shrink-0" />
+                              <span>{sl.label.replace(' (PDF)', '')} ↗</span>
+                            </a>
+                          ))
+                        ) : res.markingSchemeUrl ? (
+                          <a
+                            href={res.markingSchemeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => onRecordStudyActivity?.()}
+                            className="inline-flex px-2 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-extrabold text-[11px] items-center gap-1"
+                          >
+                            <FileCheck2 className="w-3 h-3 shrink-0" />
+                            <span>{res.category === 'revision_notes' ? 'Alt Notes ↗' : res.category === 'mcq_tests' ? 'MCQs ↗' : 'Answers ↗'}</span>
+                          </a>
+                        ) : null}
+
+                        <a
+                          href={officialPortal}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => onRecordStudyActivity?.()}
+                          className="inline-flex px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-color)] text-[var(--text-secondary)] font-bold text-[11px] items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3 text-cyan-400 shrink-0" />
+                          <span>{res.category === 'digraj_singh_rajput' ? 'Site ↗' : 'Portal ↗'}</span>
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Multi-Column Resource Table */}
+              <div className="hidden md:block overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-b border-[var(--border-color)] text-[11px] uppercase tracking-wider font-extrabold">
+                      <th className="py-2.5 px-3 whitespace-nowrap">Subject &amp; Code</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap min-w-[200px]">Document / Session</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap text-center">Direct Resource / PDF</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap text-center">Answers / Marking Scheme</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap text-center">Official Portal / Source</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-color)]">
+                    {filteredResources.map((res: ResourceItem) => {
+                      const subColor = getSubjectColor(res.subjectId);
+                      const officialPortal = res.officialPortalUrl || 'https://cbseacademic.nic.in/SQP_CLASSX_2026-27.html';
+
+                      // Sublinks if present (SQP, MS, PDFs, Mock Tests, Portal links)
+                      const primarySubLinks = res.subLinks?.filter((sl) => sl.type !== 'ms') || [];
+                      const msSubLinks = res.subLinks?.filter((sl) => sl.type === 'ms') || [];
+
+                      const primaryActionLabel =
+                        res.category === 'digraj_singh_rajput'
+                          ? 'Open digrajsinghrajput.com ↗'
+                          : res.category === 'revision_notes'
+                          ? 'Open Notes ↗'
+                          : res.category === 'extra_qa'
+                          ? 'Open Extra Q&A ↗'
+                          : res.category === 'mcq_tests'
+                          ? res.title.toLowerCase().includes('mock test') || res.url.includes('mock-test')
+                            ? 'Start Free Test ↗'
+                            : 'Practice MCQs ↗'
+                          : res.category === 'cbse_pyq'
+                          ? 'Open PYQ ↗'
+                          : res.category === 'ncert_books'
+                          ? 'Open NCERT PDF ↗'
+                          : res.category === 'ncert_solutions' || res.category === 'reference_books'
+                          ? 'Open Solutions ↗'
+                          : res.category === 'cbse_topper_answers'
+                          ? 'View Topper Copies ↗'
+                          : res.category === 'cbse_sqp'
+                          ? 'Open Official SQP ↗'
+                          : 'Open Resource ↗';
+
+                      return (
+                        <tr
+                          key={res.id}
+                          className="hover:bg-cyan-500/[0.03] transition-colors"
+                        >
+                          {/* 1. Subject & Code */}
+                          <td className="py-2.5 px-3 whitespace-nowrap align-middle">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2 h-6 rounded-full shrink-0"
+                                style={{ backgroundColor: subColor }}
+                              />
+                              <div>
+                                <span
+                                  className="sub-accent-pill border px-1.5 py-0.5 rounded text-[10px] font-black uppercase block w-fit"
+                                  style={{ '--sub-hex': subColor } as React.CSSProperties}
+                                >
+                                  {getSubjectLabel(res.subjectId)}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* 2. Document & Session */}
+                          <td className="py-2.5 px-3 align-middle">
+                            <div className="space-y-0.5">
+                              <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 flex-wrap">
+                                <span>{res.year || res.updatedDateLabel || 'CBSE Official'}</span>
+                                <span aria-hidden="true">·</span>
+                                <span className="text-cyan-400 font-medium">{res.badge}</span>
+                                {res.sstSection && (
+                                  <>
+                                    <span aria-hidden="true">·</span>
+                                    <span className="capitalize">{res.sstSection.replace('_', ' ')}</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="text-xs font-bold text-[var(--text-primary)] leading-tight">
+                                {res.title}
+                              </div>
+                              {res.description && (
+                                <div className="text-[11px] text-[var(--text-muted)] line-clamp-2 max-w-md">
+                                  {res.description}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 3. Direct Resource / PDF / Interactive Study Sheet */}
+                          <td className="py-2.5 px-3 whitespace-nowrap text-center align-middle">
+                            {res.studySheetId || res.opensMapChecklist ? (
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                {res.studySheetId && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleOpenStudySheet(
+                                        res.studySheetId!,
+                                        res.id.includes('pyq') || res.id.includes('extra_qa')
+                                          ? 'sureshot'
+                                          : 'notes'
+                                      )
+                                    }
+                                    className="inline-flex px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs items-center gap-1.5 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
+                                  >
+                                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                                    <span>
+                                      {res.id.includes('pyq') || res.id.includes('extra_qa')
+                                        ? 'Read Sure-Shot Q&As'
+                                        : 'Read Notes & Mind Map'}
+                                    </span>
+                                  </button>
+                                )}
+                                {res.opensMapChecklist && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowMapChecklistPanel(true);
+                                      const el = document.getElementById('sst-map-checklist-panel');
+                                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                    }}
+                                    className="inline-flex px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs items-center gap-1.5 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
+                                  >
+                                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Open Map Checklist</span>
+                                  </button>
+                                )}
+                              </div>
+                            ) : primarySubLinks.length > 0 ? (
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                {primarySubLinks.map((sl, idx) => (
+                                  <a
+                                    key={idx}
+                                    href={sl.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => onRecordStudyActivity?.()}
+                                    className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs flex items-center gap-1 shadow-sm transition-all"
+                                    title={`Open ${sl.label} directly in new tab`}
+                                  >
+                                    <FileText className="w-3.5 h-3.5 shrink-0" />
+                                    <span>{sl.label.replace(' (PDF)', '')} ↗</span>
+                                  </a>
+                                ))}
+                              </div>
+                            ) : (
+                              <a
+                                href={res.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => onRecordStudyActivity?.()}
+                                className="inline-flex px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs items-center gap-1 shadow-sm transition-all"
+                                title={`Open ${res.title} in new tab`}
+                              >
+                                <FileText className="w-3.5 h-3.5 shrink-0" />
+                                <span>{primaryActionLabel}</span>
+                              </a>
+                            )}
+                          </td>
+
+                          {/* 4. Answers / Marking Scheme (MS) / Mind Map & Video Companion */}
+                          <td className="py-2.5 px-3 whitespace-nowrap text-center align-middle">
+                            {res.studySheetId ? (
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenStudySheet(res.studySheetId!, 'mindmap')}
+                                  className="inline-flex px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-cyan-400/50 text-[var(--text-primary)] font-bold text-xs items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0"
+                                >
+                                  <GitBranch className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                                  <span>Mind Map</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenStudySheet(res.studySheetId!, 'video')}
+                                  className="inline-flex px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-emerald-400/50 text-emerald-400 font-bold text-xs items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0"
+                                >
+                                  <PlayCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Video Guide</span>
+                                </button>
+                              </div>
+                            ) : msSubLinks.length > 0 ? (
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                {msSubLinks.map((sl, idx) => (
+                                  <a
+                                    key={idx}
+                                    href={sl.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => onRecordStudyActivity?.()}
+                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs flex items-center gap-1 transition-all"
+                                    title={`Open ${sl.label} in new tab`}
+                                  >
+                                    <FileCheck2 className="w-3.5 h-3.5 shrink-0" />
+                                    <span>{sl.label.replace(' (PDF)', '')} ↗</span>
+                                  </a>
+                                ))}
+                              </div>
+                            ) : res.markingSchemeUrl ? (
+                              <a
+                                href={res.markingSchemeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => onRecordStudyActivity?.()}
+                                className="inline-flex px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs items-center gap-1 transition-all"
+                                title="Open solutions or marking scheme in new tab"
+                              >
+                                <FileCheck2 className="w-3.5 h-3.5 shrink-0" />
+                                <span>{res.category === 'revision_notes' ? 'Alt Notes Portal ↗' : res.category === 'mcq_tests' ? 'Chapter MCQs ↗' : 'Marking Scheme ↗'}</span>
+                              </a>
+                            ) : (
+                              <span className="text-[11px] text-[var(--text-muted)] italic">
+                                Answers Included
+                              </span>
+                            )}
+                          </td>
+
+                          {/* 5. Official Portal / Source */}
+                          <td className="py-2.5 px-3 whitespace-nowrap text-center align-middle">
+                            <a
+                              href={officialPortal}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => onRecordStudyActivity?.()}
+                              className="inline-flex px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-cyan-400/50 text-[var(--text-secondary)] hover:text-cyan-300 font-bold text-xs items-center gap-1 transition-all"
+                              title={`Open ${res.source} in new tab`}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                              <span>
+                                {res.category === 'digraj_singh_rajput'
+                                  ? 'digrajsinghrajput.com ↗'
+                                  : 'Official Portal ↗'}
+                              </span>
+                            </a>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {/* Bottom Navigation Toolbar */}
